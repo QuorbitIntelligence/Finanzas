@@ -271,6 +271,17 @@ tbody td{padding:10px 13px;vertical-align:middle}
 .empty-s{font-size:11px}
 .divider{height:1px;background:var(--bd);margin:20px 0}
 
+.ev-zone{border:2px dashed var(--bd2);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--sf2)}
+.ev-zone:hover,.ev-zone.drag{border-color:var(--blue);background:var(--bl)}
+.ev-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.ev-zone-lbl{font-size:11px;color:var(--tx3);font-weight:600;pointer-events:none}
+.ev-thumb{width:100%;max-height:120px;object-fit:contain;border-radius:6px;margin-top:6px;display:block}
+.ev-pdf{display:flex;align-items:center;gap:8px;background:var(--rl);border-radius:6px;padding:8px 10px;margin-top:6px}
+.ev-pdf-ic{font-size:22px}
+.ev-pdf-nm{font-size:11px;font-weight:600;color:var(--red);word-break:break-all}
+.ev-clear{position:absolute;top:6px;right:6px;background:var(--red);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;line-height:1}
+.ev-ic{font-size:13px;cursor:pointer;padding:3px 6px;border-radius:5px;background:var(--bl);color:var(--blue);border:1px solid var(--blue);font-weight:700}
+.ev-ic.pdf{background:var(--rl);color:var(--red);border-color:var(--red)}
 @media print{
   .sidebar,.topbar,.ob-ov,.ov,.btn-p,.btn-g,.btn-sm,.btn-ic,.tabs,.qna-foot{display:none!important}
   .main{margin-left:0!important}
@@ -753,6 +764,14 @@ tbody td{padding:10px 13px;vertical-align:middle}
       <div style="margin-bottom:6px"><div style="font-size:9px;font-weight:700;color:var(--tx2);margin-bottom:4px">2026</div><div class="mpg" id="tc-p26"></div></div>
       <div><div style="font-size:9px;font-weight:700;color:var(--tx2);margin-bottom:4px">2027</div><div class="mpg" id="tc-p27"></div></div>
     </div>
+    <div style="margin-top:12px">
+      <div class="flbl" style="margin-bottom:6px">📎 Evidencia / comprobante (imagen o PDF · máx. 3 MB)</div>
+      <div class="ev-zone" id="tc-ev-zone" ondragover="evDrag(event,'tc-ev-zone')" ondragleave="evLeave('tc-ev-zone')" ondrop="evDrop(event,'tc-ev')">
+        <input type="file" id="tc-ev-file" accept="image/*,application/pdf" onchange="evLoad(this,'tc-ev')">
+        <div class="ev-zone-lbl">Arrastra aquí o clic para adjuntar</div>
+      </div>
+      <div id="tc-ev-preview"></div>
+    </div>
     <div class="modal-ft"><button class="btn btn-g" onclick="document.getElementById('m-tc').style.display='none'">Cancelar</button><button class="btn btn-p" onclick="saveTC()">💾 Guardar</button></div>
   </div>
 </div>
@@ -774,6 +793,14 @@ tbody td{padding:10px 13px;vertical-align:middle}
       <div class="fgrp"><div class="flbl">Monto pendiente ($)</div><input type="number" class="finp" id="mov-pend" placeholder="0"></div>
       <div class="fgrp"><div class="flbl">Estatus</div><select class="finp" id="mov-est"><option value="PAGADO">Pagado</option><option value="PENDIENTE">Pendiente</option><option value="PARCIAL">Parcial</option><option value="EN PROCESO">En proceso</option><option value="CANCELADO">Cancelado</option></select></div>
       <div class="fgrp fgf"><div class="flbl">Observaciones</div><textarea class="finp" id="mov-obs" rows="2" style="resize:vertical"></textarea></div>
+    </div>
+    <div style="margin-top:12px">
+      <div class="flbl" style="margin-bottom:6px">📎 Evidencia / comprobante (imagen o PDF · máx. 3 MB)</div>
+      <div class="ev-zone" id="mov-ev-zone" ondragover="evDrag(event,'mov-ev-zone')" ondragleave="evLeave('mov-ev-zone')" ondrop="evDrop(event,'mov-ev')">
+        <input type="file" id="mov-ev-file" accept="image/*,application/pdf" onchange="evLoad(this,'mov-ev')">
+        <div class="ev-zone-lbl">Arrastra aquí o clic para adjuntar</div>
+      </div>
+      <div id="mov-ev-preview"></div>
     </div>
     <div class="modal-ft"><button class="btn btn-g" onclick="document.getElementById('m-mov').style.display='none'">Cancelar</button><button class="btn btn-p" onclick="saveMov()">💾 Guardar</button></div>
   </div>
@@ -937,6 +964,137 @@ function mkYear(year){
   }
   return q;
 }
+
+// ════════════════════════════════════════
+// EVIDENCIA — helpers
+var _evData={};
+
+function evDrag(e,zoneId){e.preventDefault();var z=document.getElementById(zoneId);if(z)z.classList.add('drag');}
+function evLeave(zoneId){var z=document.getElementById(zoneId);if(z)z.classList.remove('drag');}
+function evDrop(e,prefix){
+  e.preventDefault();
+  var zoneId=prefix+'-zone';
+  var z=document.getElementById(zoneId);if(z)z.classList.remove('drag');
+  var file=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+  if(file) evProcess(file,prefix);
+}
+function evLoad(input,prefix){
+  var file=input&&input.files&&input.files[0];
+  if(file) evProcess(file,prefix);
+}
+function evProcess(file,prefix){
+  if(file.size>3*1024*1024){toast('El archivo no debe superar 3 MB');return;}
+  var isPDF=file.type==='application/pdf';
+  var isImg=file.type.indexOf('image/')===0;
+  if(!isPDF&&!isImg){toast('Solo se permiten imagenes o PDF');return;}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    _evData[prefix]={data:e.target.result,type:isPDF?'pdf':'image',name:file.name};
+    evRenderPreview(prefix);
+    toast('Adjuntado: '+file.name);
+  };
+  reader.readAsDataURL(file);
+}
+function evRenderPreview(prefix){
+  var ev=_evData[prefix];
+  var prevEl=document.getElementById(prefix+'-preview');
+  var zoneEl=document.getElementById(prefix+'-zone');
+  var lbl=zoneEl?zoneEl.querySelector('.ev-zone-lbl'):null;
+  if(!prevEl) return;
+  if(!ev){
+    prevEl.innerHTML='';
+    if(lbl) lbl.textContent='Arrastra aqui o clic para adjuntar';
+    return;
+  }
+  var html='';
+  if(ev.type==='image'){
+    html='<div style="position:relative;display:inline-block;width:100%">'
+        +'<button class="ev-clear" data-ev-clear="'+prefix+'">x</button>'
+        +'<img src="'+ev.data+'" class="ev-thumb" data-ev-open="'+prefix+'" style="cursor:pointer" title="Ver imagen">'
+        +'</div>';
+  } else {
+    html='<div class="ev-pdf" style="position:relative">'
+        +'<button class="ev-clear" data-ev-clear="'+prefix+'">x</button>'
+        +'<span class="ev-pdf-ic">PDF</span>'
+        +'<span class="ev-pdf-nm" data-ev-open="'+prefix+'" style="cursor:pointer">'+ev.name+'</span>'
+        +'</div>';
+  }
+  prevEl.innerHTML=html;
+  if(lbl) lbl.textContent='Archivo adjunto';
+}
+function evClear(prefix){
+  delete _evData[prefix];
+  evRenderPreview(prefix);
+  var fi=document.getElementById(prefix+'-file');
+  if(fi) fi.value='';
+}
+function evOpen(prefix){
+  var ev=_evData[prefix];
+  if(!ev) return;
+  evOpenData(ev);
+}
+function evOpenData(ev){
+  if(!ev||!ev.data) return;
+  var win=window.open();
+  if(!win) return;
+  if(ev.type==='image'){
+    win.document.write('<html><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="'+ev.data+'" style="max-width:100%;max-height:100vh"></body></html>');
+  } else {
+    win.document.write('<html><body style="margin:0"><embed src="'+ev.data+'" type="application/pdf" width="100%" height="100%" style="min-height:100vh"></body></html>');
+  }
+}
+function evSet(prefix,savedEv){
+  if(savedEv&&savedEv.data){
+    _evData[prefix]=savedEv;
+    evRenderPreview(prefix);
+  } else {
+    evClear(prefix);
+  }
+}
+function evGet(prefix){return _evData[prefix]||null;}
+function evCellTC(r){
+  var ev=r.evidencia;
+  if(!ev||!ev.data) return '<td><span style="color:var(--tx3);font-size:11px">-</span></td>';
+  var icon=ev.type==='image'?'IMG':'PDF';
+  var cls='ev-ic'+(ev.type==='pdf'?' pdf':'');
+  return '<td><span class="'+cls+'" data-ev-tc="'+r.id+'" style="cursor:pointer" title="'+(ev.name||'Ver')+'">'+icon+'</span></td>';
+}
+function evCellMov(m){
+  var ev=m.evidencia;
+  if(!ev||!ev.data) return '<td><span style="color:var(--tx3);font-size:11px">-</span></td>';
+  var icon=ev.type==='image'?'IMG':'PDF';
+  var cls='ev-ic'+(ev.type==='pdf'?' pdf':'');
+  return '<td><span class="'+cls+'" data-ev-mov="'+m.id+'" style="cursor:pointer" title="'+(ev.name||'Ver')+'">'+icon+'</span></td>';
+}
+// Global click delegation for evidencia badges
+document.addEventListener('click',function(e){
+  var t=e.target;
+  // Clear button
+  var clearP=t.getAttribute('data-ev-clear');
+  if(clearP){evClear(clearP);return;}
+  // Open preview (inside modal)
+  var openP=t.getAttribute('data-ev-open');
+  if(openP){evOpen(openP);return;}
+  // Open from TC table
+  var tcId=t.getAttribute('data-ev-tc');
+  if(tcId){
+    for(var i=0;i<TC.length;i++){
+      if(TC[i].id===tcId){evOpenData(TC[i].evidencia);return;}
+    }
+    return;
+  }
+  // Open from Mov table
+  var movId=t.getAttribute('data-ev-mov');
+  if(movId){
+    var qkeys=Object.keys(QNAS);
+    for(var qi=0;qi<qkeys.length;qi++){
+      var movs=QNAS[qkeys[qi]].movimientos||[];
+      for(var mi=0;mi<movs.length;mi++){
+        if(movs[mi].id===movId){evOpenData(movs[mi].evidencia);return;}
+      }
+    }
+  }
+});
 
 // ════════════════════════════════════════
 // STATE
@@ -1334,6 +1492,51 @@ function renderDashQChart(){
   var el=document.getElementById('dash-qchart');
   if(el) el.innerHTML=html;
 }
+function evCellTC(r){
+  var ev=r.evidencia;
+  if(!ev||!ev.data) return '<td><span style="color:var(--tx3);font-size:11px">—</span></td>';
+  var isImg=ev.type==='image';
+  var rid=r.id;
+  return '<td><span class="ev-ic'+(isImg?'':' pdf')+'" onclick="evOpenRecord(\''+'tc'+'\',\''+rid+'\')" title="'+(ev.name||'Ver')+'">'+( isImg?'🖼️':'📄')+'</span></td>';
+}
+function evCellMov(m){
+  var ev=m.evidencia;
+  if(!ev||!ev.data) return '<td><span style="color:var(--tx3);font-size:11px">—</span></td>';
+  var isImg=ev.type==='image';
+  var mid2=m.id;
+  return '<td><span class="ev-ic'+(isImg?'':' pdf')+'" onclick="evOpenMovRecord(\''+mid2+'\')" title="'+(ev.name||'Ver')+'">'+( isImg?'🖼️':'📄')+'</span></td>';
+}
+function evOpenRecord(type, id){
+  var ev=null;
+  if(type==='tc'){
+    for(var i=0;i<TC.length;i++){if(TC[i].id===id){ev=TC[i].evidencia;break;}}
+  }
+  if(!ev||!ev.data) return;
+  var win=window.open();
+  if(ev.type==='image'){
+    win.document.write('<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="'+ev.data+'" style="max-width:100%;max-height:100vh"></body></html>');
+  } else {
+    win.document.write('<html><body style="margin:0"><embed src="'+ev.data+'" type="application/pdf" width="100%" height="100%" style="min-height:100vh"></body></html>');
+  }
+}
+function evOpenMovRecord(movId){
+  var ev=null;
+  var qKeys=Object.keys(QNAS);
+  for(var qi=0;qi<qKeys.length;qi++){
+    var movs=QNAS[qKeys[qi]].movimientos||[];
+    for(var mi=0;mi<movs.length;mi++){
+      if(movs[mi].id===movId){ev=movs[mi].evidencia;break;}
+    }
+    if(ev) break;
+  }
+  if(!ev||!ev.data) return;
+  var win=window.open();
+  if(ev.type==='image'){
+    win.document.write('<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="'+ev.data+'" style="max-width:100%;max-height:100vh"></body></html>');
+  } else {
+    win.document.write('<html><body style="margin:0"><embed src="'+ev.data+'" type="application/pdf" width="100%" height="100%" style="min-height:100vh"></body></html>');
+  }
+}
 function buildTCPills(r){
   var p26='', p27='';
   for(var mi=0;mi<12;mi++){
@@ -1435,7 +1638,7 @@ function renderTC(){
 function buildTCTable(list, showCard){
   var h='<div class="tbl"><table><thead><tr><th>#</th><th style="min-width:200px">Descripción</th>';
   if(showCard) h+='<th>Tarjeta</th>';
-  h+='<th>Fecha</th><th>Día pago</th><th>Monto</th><th>MSI</th><th>Pago/Mes</th><th>Pagos</th><th>Saldo</th><th>2026</th><th>2027</th><th>Estatus</th><th></th></tr></thead><tbody>';
+  h+='<th>Fecha</th><th>Día pago</th><th>Monto</th><th>MSI</th><th>Pago/Mes</th><th>Pagos</th><th>Saldo</th><th>2026</th><th>2027</th><th>Estatus</th><th>Ev.</th><th></th></tr></thead><tbody>';
   for(var i=0;i<list.length;i++){
     var r=list[i];
     var pm=tcPM(r), cnt=tcCnt(r), sal2=tcSaldo(r);
@@ -1457,6 +1660,7 @@ function buildTCTable(list, showCard){
     h+='<td><div class="mpg" style="min-width:220px">'+pills.p26+'</div></td>';
     h+='<td><div class="mpg" style="min-width:220px">'+pills.p27+'</div></td>';
     h+='<td>'+badge(r.estatus)+'</td>';
+    h+=evCellTC(r);
     h+='<td><div style="display:flex;gap:5px"><button class="btn-ic" onclick="openTC(\''+r.id+'\')">✏️</button><button class="btn-ic" onclick="delTC(\''+r.id+'\')">🗑️</button></div></td>';
     h+='</tr>';
   }
@@ -1519,6 +1723,7 @@ function openTC(id){
     el.innerHTML=h;
   }
   tcPreview();
+  evSet('tc-ev', r?r.evidencia:null);
   document.getElementById('m-tc').style.display='flex';
 }
 
@@ -1548,7 +1753,7 @@ function saveTC(){
       if(pills[pi].classList.contains('ok')) pagos[yr][pi]='PAGADO';
     }
   }
-  var item={id:editTCId||Date.now().toString(),desc:desc,monto:monto,meses:meses,fecha:document.getElementById('tc-fecha').value,estatus:document.getElementById('tc-est').value,pagos:pagos,cardId:document.getElementById('tc-card').value||'',diaPago:parseInt(document.getElementById('tc-dia-pago').value)||null};
+  var item={id:editTCId||Date.now().toString(),desc:desc,monto:monto,meses:meses,fecha:document.getElementById('tc-fecha').value,estatus:document.getElementById('tc-est').value,pagos:pagos,cardId:document.getElementById('tc-card').value||'',diaPago:parseInt(document.getElementById('tc-dia-pago').value)||null,evidencia:evGet('tc-ev')||null};
   if(editTCId){
     for(var i=0;i<TC.length;i++){if(TC[i].id===editTCId){TC[i]=item;break;}}
   } else {
@@ -1586,13 +1791,13 @@ function buildMovTable(q){
   if(!q.movimientos||!q.movimientos.length){
     return '<div class="empty" style="padding:20px"><div class="empty-t">Sin movimientos</div></div>';
   }
-  var h='<div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Concepto</th><th>Monto</th><th>Modo</th><th>Comprobante</th><th>Pendiente</th><th>Estatus</th><th></th></tr></thead><tbody>';
+  var h='<div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Concepto</th><th>Monto</th><th>Modo</th><th>Comprobante</th><th>Pendiente</th><th>Estatus</th><th>Ev.</th><th></th></tr></thead><tbody>';
   for(var i=0;i<q.movimientos.length;i++){
     var m=q.movimientos[i];
     var conc=m.concepto||m.desc||'—';
     var extra=(m.desc&&m.concepto)?('<div style="font-size:11px;color:var(--tx2)">'+m.desc+'</div>'):'';
     var pend=m.pendiente>0?('<span class="pt-tag">'+MXN(m.pendiente)+'</span>'):'<span class="tdd">—</span>';
-    h+='<tr><td class="tdm tdd">'+(i+1)+'</td><td style="max-width:200px"><div style="font-weight:600">'+conc+'</div>'+extra+'</td><td class="tdm">'+MXN(m.monto)+'</td><td><span class="chip">'+(m.modo||'—')+'</span></td><td style="font-size:11px;color:var(--tx2)">'+(m.compro||'—')+'</td><td>'+pend+'</td><td>'+badge(m.estatus||'PAGADO')+'</td><td><div style="display:flex;gap:4px"><button class="btn-ic" onclick="openMov(\''+q.key+'\',\''+m.id+'\')">✏️</button><button class="btn-ic" onclick="delMov(\''+q.key+'\',\''+m.id+'\')">🗑️</button></div></td></tr>';
+    h+='<tr><td class="tdm tdd">'+(i+1)+'</td><td style="max-width:200px"><div style="font-weight:600">'+conc+'</div>'+extra+'</td><td class="tdm">'+MXN(m.monto)+'</td><td><span class="chip">'+(m.modo||'—')+'</span></td><td style="font-size:11px;color:var(--tx2)">'+(m.compro||'—')+'</td><td>'+pend+'</td><td>'+badge(m.estatus||'PAGADO')+'</td><td>'+evCellMov(m)+'</td><td><div style="display:flex;gap:4px"><button class="btn-ic" onclick="openMov(\''+q.key+'\',\''+m.id+'\')">✏️</button><button class="btn-ic" onclick="delMov(\''+q.key+'\',\''+m.id+'\')">🗑️</button></div></td></tr>';
   }
   h+='</tbody></table></div>';
   return h;
@@ -1687,13 +1892,14 @@ function openMov(qKey, movId){
     if(mov&&mov.concepto===CATS[i]) opt.selected=true;
     sel.appendChild(opt);
   }
+  evSet('mov-ev', mov?mov.evidencia:null);
   document.getElementById('m-mov').style.display='flex';
 }
 
 function saveMov(){
   var monto=parseFloat(document.getElementById('mov-monto').value)||0;
   if(!monto){toast('Ingresa el monto');return;}
-  var mov={id:editMovId||Date.now().toString(),fecha:document.getElementById('mov-fecha').value,concepto:document.getElementById('mov-conc').value,desc:document.getElementById('mov-desc').value,monto:monto,modo:document.getElementById('mov-modo').value,compro:document.getElementById('mov-comp').value,pendiente:parseFloat(document.getElementById('mov-pend').value)||0,estatus:document.getElementById('mov-est').value,obs:document.getElementById('mov-obs').value};
+  var mov={id:editMovId||Date.now().toString(),fecha:document.getElementById('mov-fecha').value,concepto:document.getElementById('mov-conc').value,desc:document.getElementById('mov-desc').value,monto:monto,modo:document.getElementById('mov-modo').value,compro:document.getElementById('mov-comp').value,pendiente:parseFloat(document.getElementById('mov-pend').value)||0,estatus:document.getElementById('mov-est').value,obs:document.getElementById('mov-obs').value,evidencia:evGet('mov-ev')||null};
   var q=QNAS[editMovKey];
   if(editMovId){
     for(var i=0;i<q.movimientos.length;i++){if(q.movimientos[i].id===editMovId){q.movimientos[i]=mov;break;}}
