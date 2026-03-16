@@ -336,6 +336,7 @@ tbody td{padding:10px 13px;vertical-align:middle}
       <button class="nb" onclick="goPage('proyectos',this)"><span class="ni">🌅</span><span>Proyectos futuros</span></button>
       <div class="sb-grp">Config</div>
       <button class="nb" onclick="goPage('catalogos',this)"><span class="ni">📋</span><span>Catálogos</span></button>
+      <button class="nb" onclick="goPage('tarjetas',this)"><span class="ni">💳</span><span>Mis tarjetas</span></button>
       <button class="nb" onclick="goPage('perfil',this)"><span class="ni">⚙️</span><span>Perfil y ajustes</span></button>
       <button class="nb" onclick="goPage('acerca',this)"><span class="ni">ℹ️</span><span>Acerca de</span></button>
     </nav>
@@ -351,6 +352,7 @@ tbody td{padding:10px 13px;vertical-align:middle}
       <div class="tb-r">
         <span class="tb-date" id="tb-date"></span>
         <select class="y-sel" id="y-sel" onchange="changeYear(parseInt(this.value))"></select>
+        <button class="th-btn" onclick="addYear()" title="Crear siguiente año de quincenas" style="font-size:11px;padding:5px 10px">+ Año</button>
         <button class="th-btn" onclick="cycleTheme()" id="th-btn">🌙 Oscuro</button>
         <button class="btn btn-g btn-sm" onclick="window.print()">📄 PDF</button>
       </div>
@@ -372,19 +374,42 @@ tbody td{padding:10px 13px;vertical-align:middle}
         <div class="card"><div class="card-hd"><div class="card-ttl">🌅 Proyectos</div><button class="btn btn-g btn-sm" onclick="goPage('proyectos',null)">Ver todos →</button></div><div class="card-bd" id="dash-proys"></div></div>
       </div>
       <div class="card"><div class="card-hd"><div class="card-ttl">📅 Quincena activa</div><button class="btn btn-p btn-sm" onclick="goPage('quincenas',null)">Ir a quincenas →</button></div><div class="card-bd" id="dash-qna"></div></div>
+      <div class="card"><div class="card-hd"><div class="card-ttl">📊 Ingresos vs Gastos por quincena</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span style="font-size:10px;color:var(--tx3)" id="dash-qchart-lbl">Todos los meses</span>
+          <select id="dash-qchart-mes" style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--bd);background:var(--sf2);color:var(--tx)" onchange="renderDashQChart()">
+            <option value="">Año completo</option>
+          </select>
+        </div>
+      </div><div class="card-bd" id="dash-qchart"></div></div>
     </div>
 
     <!-- TC -->
     <div class="page" id="page-tc">
       <div class="ph"><div><div class="pt">💳 Tarjeta de crédito</div><div class="ps">Compras a meses sin intereses</div></div><button class="btn btn-p" onclick="openTC()">+ Nueva compra</button></div>
       <div class="g3" id="tc-kpis"></div>
-      <div class="tabs" id="tc-tabs">
-        <button class="tab active" onclick="filterTC('TODOS',this)">Todos</button>
-        <button class="tab" onclick="filterTC('PENDIENTE',this)">Pendiente</button>
-        <button class="tab" onclick="filterTC('PAGADO',this)">Pagado</button>
-        <button class="tab" onclick="filterTC('PARCIAL',this)">Parcial</button>
+      <!-- Filtros y agrupador -->
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+        <div class="tabs" id="tc-tabs" style="margin-bottom:0">
+          <button class="tab active" onclick="filterTC('TODOS',this)">Todos</button>
+          <button class="tab" onclick="filterTC('PENDIENTE',this)">Pendiente</button>
+          <button class="tab" onclick="filterTC('PAGADO',this)">Pagado</button>
+          <button class="tab" onclick="filterTC('PARCIAL',this)">Parcial</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap">
+          <div style="font-size:11px;font-weight:700;color:var(--tx3)">Ordenar por tarjeta:</div>
+          <select id="tc-card-filter" class="y-sel" onchange="renderTC()" style="font-size:11px;min-width:160px">
+            <option value="">Todas las tarjetas</option>
+          </select>
+          <select id="tc-sort" class="y-sel" onchange="renderTC()" style="font-size:11px">
+            <option value="fecha">Por fecha</option>
+            <option value="tarjeta">Por tarjeta</option>
+            <option value="monto">Por monto</option>
+            <option value="saldo">Por saldo</option>
+          </select>
+        </div>
       </div>
-      <div class="tbl"><table><thead><tr><th>#</th><th>Descripción</th><th>Fecha</th><th>Monto</th><th>MSI</th><th>Pago/Mes</th><th>Pagos</th><th>Saldo</th><th>Meses 2026</th><th>Meses 2027</th><th>Estatus</th><th></th></tr></thead><tbody id="tc-body"></tbody></table></div>
+      <div id="tc-blocks"></div>
     </div>
 
     <!-- QUINCENAS -->
@@ -410,6 +435,12 @@ tbody td{padding:10px 13px;vertical-align:middle}
       <div class="ph"><div><div class="pt">🌅 Proyectos futuros</div><div class="ps">Planes a largo plazo (1–15 años)</div></div><button class="btn btn-p" onclick="openProy()">+ Nuevo proyecto</button></div>
       <div class="g3" id="proy-kpis"></div>
       <div class="gg" id="proy-grid"></div>
+    </div>
+
+    <!-- TARJETAS -->
+    <div class="page" id="page-tarjetas">
+      <div class="ph"><div><div class="pt">💳 Mis tarjetas</div><div class="ps">Catálogo de tarjetas de crédito y departamentales</div></div><button class="btn btn-p" onclick="openTarjeta()">+ Nueva tarjeta</button></div>
+      <div id="tarjetas-grid"></div>
     </div>
 
     <!-- CATÁLOGOS -->
@@ -609,6 +640,75 @@ tbody td{padding:10px 13px;vertical-align:middle}
       <div style="margin-top:14px;font-size:12px;color:var(--tx3);text-align:center">quorbit.io · @Juances · 2026</div>
     </div>
   </div>
+
+  <!-- Banner privacidad y datos locales -->
+  <div style="background:var(--tl);border:1.5px solid var(--teal);border-radius:var(--r);padding:16px 20px;margin-bottom:16px;display:flex;align-items:flex-start;gap:14px">
+    <span style="font-size:24px;flex-shrink:0">🔒</span>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:var(--teal);margin-bottom:6px">Tu información es privada y permanece en tu dispositivo</div>
+      <div style="font-size:12px;color:var(--tx2);line-height:1.7">
+        <strong>Quorbit Finanzas v1.0</strong> almacena todos tus datos exclusivamente en el navegador de tu dispositivo mediante <strong>localStorage</strong>. 
+        Ningún dato es enviado a servidores externos, no hay rastreo, no hay cuentas en la nube y ningún tercero tiene acceso a tu información financiera.
+        Tus datos son tuyos — viven en tu dispositivo y solo tú puedes acceder a ellos.
+      </div>
+      <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+        <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--gl);color:#15803D">✓ Sin servidor</span>
+        <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--gl);color:#15803D">✓ Sin rastreo</span>
+        <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--gl);color:#15803D">✓ Sin cuentas requeridas</span>
+        <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--gl);color:#15803D">✓ Funciona sin internet</span>
+        <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--gl);color:#15803D">✓ Exporta tus datos cuando quieras</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Datos de la empresa + derechos reservados -->
+  <div style="background:var(--navy);border-radius:var(--r);overflow:hidden;margin-bottom:16px">
+    <!-- Logo + slogan -->
+    <div style="padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.08)">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div>
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+            <span style="font-family:Georgia,serif;font-size:24px;font-weight:700;color:#fff;letter-spacing:-0.5px">Quorbit</span>
+            <span style="width:16px;height:16px;border-radius:50%;border:2px solid #BA7517;display:inline-flex;align-items:center;justify-content:center"><span style="width:4px;height:4px;border-radius:50%;background:#BA7517;display:block"></span></span>
+          </div>
+          <div style="font-size:11px;font-style:italic;color:rgba(255,255,255,0.45)">Decisiones más inteligentes, negocios más fuertes.</div>
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div style="font-size:11px;color:rgba(255,255,255,0.5)">quorbit.io</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px">@quorbit · @Juances</div>
+        </div>
+      </div>
+    </div>
+    <!-- Info en grid -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);padding:16px 24px;gap:16px">
+      <div>
+        <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Empresa</div>
+        <div style="font-size:12px;color:#fff;font-weight:600">Quorbit</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-top:2px">Tecnología · Software · IA</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.45)">México · 2026</div>
+      </div>
+      <div>
+        <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Fundador y CEO</div>
+        <div style="font-size:12px;color:#fff;font-weight:600">Juan Carlos Cruz Estrada</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-top:2px">ISC · M.Sc. IA & Ciberseguridad</div>
+        <div style="font-size:11px;color:#BA7517;margin-top:2px">@Juances</div>
+      </div>
+      <div>
+        <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Contacto</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.6);line-height:1.8">
+          quorbit.io<br>
+          jcarloscruzestrada-ux.github.io<br>
+          México
+        </div>
+      </div>
+    </div>
+    <!-- Derechos reservados -->
+    <div style="padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.2);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <div style="font-size:10px;color:rgba(255,255,255,0.3)">© 2026 Quorbit · Juan Carlos Cruz Estrada · Todos los derechos reservados</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.3)">Quorbit Finanzas v1.0 · Producto de Quorbit · México</div>
+    </div>
+  </div>
+
 </div>
 
 <!-- MODALS -->
@@ -616,29 +716,42 @@ tbody td{padding:10px 13px;vertical-align:middle}
 <div class="ov" id="m-tc" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-hd"><div class="modal-ttl" id="m-tc-ttl">Nueva compra TC</div><button class="modal-x" onclick="document.getElementById('m-tc').style.display='none'">✕</button></div>
-    <div class="fg">
-      <div class="fgrp fgf"><div class="flbl">Descripción</div><input class="finp" id="tc-desc" placeholder="MacBook, Samsung, Viaje..."></div>
-      <div class="fgrp"><div class="flbl">Fecha de compra</div><input type="date" class="finp" id="tc-fecha"></div>
+    <!-- Fila 1: Descripción amplia + Tarjeta -->
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="fgrp"><div class="flbl">Descripción del artículo / compra</div><input class="finp" id="tc-desc" placeholder="MacBook Pro, Samsung 55, Vuelos CDMX..."></div>
+      <div class="fgrp"><div class="flbl">Tarjeta utilizada</div>
+        <select class="finp" id="tc-card" onchange="tcAutoFillPago()">
+          <option value="">— Seleccionar —</option>
+        </select>
+      </div>
+    </div>
+    <!-- Fila 2: 4 campos compactos -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px">
+      <div class="fgrp"><div class="flbl">Fecha compra</div><input type="date" class="finp" id="tc-fecha"></div>
+      <div class="fgrp"><div class="flbl">Día pago mensual</div><input type="number" class="finp" id="tc-dia-pago" min="1" max="31" placeholder="Ej: 21"></div>
       <div class="fgrp"><div class="flbl">Monto total ($)</div><input type="number" class="finp" id="tc-monto" oninput="tcPreview()"></div>
       <div class="fgrp"><div class="flbl">Meses MSI</div>
         <select class="finp" id="tc-meses" onchange="tcPreview()">
-          <option value="1">1 (contado)</option><option value="3">3 meses</option><option value="6">6 meses</option>
-          <option value="9">9 meses</option><option value="12" selected>12 meses</option>
-          <option value="18">18 meses</option><option value="24">24 meses</option>
+          <option value="1">1 (contado)</option><option value="3">3</option><option value="6">6</option>
+          <option value="9">9</option><option value="12" selected>12</option>
+          <option value="18">18</option><option value="24">24</option>
         </select>
       </div>
+    </div>
+    <!-- Fila 3: estatus -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
       <div class="fgrp"><div class="flbl">Estatus</div>
         <select class="finp" id="tc-est">
           <option value="PENDIENTE">Pendiente</option><option value="EN PROCESO">En proceso</option>
           <option value="PARCIAL">Parcial</option><option value="PAGADO">Pagado</option><option value="CANCELADO">Cancelado</option>
         </select>
       </div>
+      <div id="tc-preview"></div>
     </div>
-    <div id="tc-preview" style="margin-top:12px"></div>
-    <div id="tc-months" style="margin-top:16px;display:none">
-      <div class="flbl" style="margin-bottom:10px">Meses pagados — clic para marcar</div>
-      <div style="margin-bottom:8px"><div style="font-size:9px;font-weight:700;color:var(--tx2);margin-bottom:5px">2026</div><div class="mpg" id="tc-p26"></div></div>
-      <div><div style="font-size:9px;font-weight:700;color:var(--tx2);margin-bottom:5px">2027</div><div class="mpg" id="tc-p27"></div></div>
+    <div id="tc-months" style="margin-top:12px;display:none">
+      <div class="flbl" style="margin-bottom:8px">Meses pagados — clic para marcar</div>
+      <div style="margin-bottom:6px"><div style="font-size:9px;font-weight:700;color:var(--tx2);margin-bottom:4px">2026</div><div class="mpg" id="tc-p26"></div></div>
+      <div><div style="font-size:9px;font-weight:700;color:var(--tx2);margin-bottom:4px">2027</div><div class="mpg" id="tc-p27"></div></div>
     </div>
     <div class="modal-ft"><button class="btn btn-g" onclick="document.getElementById('m-tc').style.display='none'">Cancelar</button><button class="btn btn-p" onclick="saveTC()">💾 Guardar</button></div>
   </div>
@@ -762,6 +875,28 @@ tbody td{padding:10px 13px;vertical-align:middle}
   </div>
 </div>
 
+<!-- Nueva tarjeta -->
+<div class="ov" id="m-tarjeta" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal modal-sm" onclick="event.stopPropagation()">
+    <div class="modal-hd"><div class="modal-ttl" id="m-tarjeta-ttl">Nueva tarjeta</div><button class="modal-x" onclick="document.getElementById('m-tarjeta').style.display='none'">✕</button></div>
+    <div class="fg">
+      <div class="fgrp fgf"><div class="flbl">Nombre de la tarjeta</div><input class="finp" id="tj-nombre" placeholder="BBVA Azul, Liverpool, Sears..."></div>
+      <div class="fgrp"><div class="flbl">Banco / emisor</div><input class="finp" id="tj-banco" placeholder="BBVA, Citibanamex..."></div>
+      <div class="fgrp"><div class="flbl">Tipo</div>
+        <select class="finp" id="tj-tipo">
+          <option value="credito">Crédito bancaria</option>
+          <option value="departamental">Departamental</option>
+          <option value="debito">Débito</option>
+        </select>
+      </div>
+      <div class="fgrp"><div class="flbl">Día de corte</div><input type="number" class="finp" id="tj-corte" min="1" max="31" placeholder="1-31"></div>
+      <div class="fgrp"><div class="flbl">Día de pago</div><input type="number" class="finp" id="tj-pago" min="1" max="31" placeholder="1-31"></div>
+      <div class="fgrp"><div class="flbl">Color identificador</div><input type="color" class="finp" id="tj-color" value="#2563EB" style="height:38px;padding:4px"></div>
+    </div>
+    <div class="modal-ft"><button class="btn btn-g" onclick="document.getElementById('m-tarjeta').style.display='none'">Cancelar</button><button class="btn btn-p" onclick="saveTarjeta()">💾 Guardar</button></div>
+  </div>
+</div>
+
 <!-- Catálogo -->
 <div class="ov" id="m-cat" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal modal-sm" onclick="event.stopPropagation()">
@@ -812,6 +947,18 @@ var QNAS      = ld('qnas',null);
 var METAS     = ld('metas',[]);
 var PROYECTOS = ld('proyectos',[]);
 var CATS      = ld('cats',CATS_DEF);
+var TC_CARDS_DEF = [
+  {id:'bbva',    nombre:'BBVA Azul',         banco:'BBVA',       tipo:'credito',     corte:1,   pago:21,  color:'#1464A5'},
+  {id:'banamex', nombre:'Banamex Classic',   banco:'Citibanamex',tipo:'credito',     corte:5,   pago:25,  color:'#CC0000'},
+  {id:'hsbc',    nombre:'HSBC Zero',         banco:'HSBC',       tipo:'credito',     corte:10,  pago:1,   color:'#DB0011'},
+  {id:'amex',    nombre:'American Express',  banco:'AMEX',       tipo:'credito',     corte:15,  pago:5,   color:'#006FCF'},
+  {id:'sears',   nombre:'Sears',             banco:'Sears',      tipo:'departamental',corte:20, pago:10,  color:'#E31837'},
+  {id:'liverpool',nombre:'Liverpool',        banco:'Liverpool',  tipo:'departamental',corte:20, pago:10,  color:'#660066'},
+  {id:'coppel',  nombre:'Coppel',            banco:'Coppel',     tipo:'departamental',corte:25, pago:15,  color:'#FF6B00'},
+  {id:'elektra', nombre:'Elektra',           banco:'Elektra',    tipo:'departamental',corte:25, pago:15,  color:'#FFCB00'},
+  {id:'palacio', nombre:'El Palacio de Hierro',banco:'Palacio',  tipo:'departamental',corte:15, pago:5,   color:'#1A1A1A'},
+];
+var TC_CARDS = ld('tc_cards', TC_CARDS_DEF);
 
 // Initialize QNAS if empty
 if(!QNAS || Object.keys(QNAS).length===0){
@@ -941,8 +1088,9 @@ function addYear(){
   Object.assign(QNAS, mkYear(next));
   sv('qnas',QNAS);
   rebuildYearSel();
-  changeYear(next);
-  toast('Año '+next+' agregado con 24 quincenas');
+  // NO cambiamos activeYear — el año activo se queda en 2026
+  // Solo rebuildeamos el selector para que aparezca el nuevo año
+  toast('✅ Año '+next+' creado — clic en el selector para navegar a él');
 }
 
 // ════════════════════════════════════════
@@ -970,7 +1118,7 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',func
 // ════════════════════════════════════════
 // NAVIGATION
 // ════════════════════════════════════════
-var PAGE_TITLES={dashboard:'Dashboard',tc:'Tarjeta de crédito',quincenas:'Quincenas',metas:'Metas de ahorro',proyectos:'Proyectos futuros',catalogos:'Catálogos',perfil:'Perfil y ajustes',acerca:'Acerca de Quorbit'};
+var PAGE_TITLES={dashboard:'Dashboard',tc:'Tarjeta de crédito',quincenas:'Quincenas',metas:'Metas de ahorro',proyectos:'Proyectos futuros',catalogos:'Catálogos',tarjetas:'Mis tarjetas',perfil:'Perfil y ajustes',acerca:'Acerca de Quorbit'};
 
 function goPage(id, btn){
   var pages=document.querySelectorAll('.page');
@@ -994,6 +1142,7 @@ function renderPage(id){
   else if(id==='catalogos')  renderCats();
   else if(id==='perfil')     renderPerfil();
   else if(id==='acerca')     renderAcerca();
+  else if(id==='tarjetas')   renderTarjetas();
 }
 
 // ════════════════════════════════════════
@@ -1119,7 +1268,8 @@ function renderDash(){
   var q=QNAS[qk];
   if(q){
     var tot=qTotal(q), sob2=qSob(q), ing2=q.ingresoQ+(q.otroIngreso||0);
-    document.getElementById('dash-qna').innerHTML='<div style="font-size:13px;font-weight:700;margin-bottom:14px">'+q.label+'</div><div class="g3" style="margin-bottom:0"><div style="background:var(--gl);border-radius:8px;padding:12px;text-align:center"><div style="font-size:9px;font-weight:700;color:#15803D;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Ingreso</div><div style="font-family:JetBrains Mono,monospace;font-size:16px;font-weight:600;color:#15803D">'+MXN(ing2)+'</div></div><div style="background:var(--rl);border-radius:8px;padding:12px;text-align:center"><div style="font-size:9px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Gastos</div><div style="font-family:JetBrains Mono,monospace;font-size:16px;font-weight:600;color:var(--red)">'+MXN(tot)+'</div></div><div style="background:'+(sob2>=0?'var(--tl)':'var(--rl)')+';border-radius:8px;padding:12px;text-align:center"><div style="font-size:9px;font-weight:700;color:'+(sob2>=0?'var(--teal)':'var(--red)')+';text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Sobrante</div><div style="font-family:JetBrains Mono,monospace;font-size:16px;font-weight:600;color:'+(sob2>=0?'var(--teal)':'var(--red)')+'">'+MXN(sob2)+'</div></div></div>';
+    renderDashQChart();
+  document.getElementById('dash-qna').innerHTML='<div style="font-size:13px;font-weight:700;margin-bottom:14px">'+q.label+'</div><div class="g3" style="margin-bottom:0"><div style="background:var(--gl);border-radius:8px;padding:12px;text-align:center"><div style="font-size:9px;font-weight:700;color:#15803D;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Ingreso</div><div style="font-family:JetBrains Mono,monospace;font-size:16px;font-weight:600;color:#15803D">'+MXN(ing2)+'</div></div><div style="background:var(--rl);border-radius:8px;padding:12px;text-align:center"><div style="font-size:9px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Gastos</div><div style="font-family:JetBrains Mono,monospace;font-size:16px;font-weight:600;color:var(--red)">'+MXN(tot)+'</div></div><div style="background:'+(sob2>=0?'var(--tl)':'var(--rl)')+';border-radius:8px;padding:12px;text-align:center"><div style="font-size:9px;font-weight:700;color:'+(sob2>=0?'var(--teal)':'var(--red)')+';text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Sobrante</div><div style="font-family:JetBrains Mono,monospace;font-size:16px;font-weight:600;color:'+(sob2>=0?'var(--teal)':'var(--red)')+'">'+MXN(sob2)+'</div></div></div>';
   } else {
     document.getElementById('dash-qna').innerHTML='<div class="empty">Sin datos para esta quincena del año '+activeYear+'</div>';
   }
@@ -1128,7 +1278,95 @@ function renderDash(){
 // ════════════════════════════════════════
 // TC
 // ════════════════════════════════════════
+function renderDashQChart(){
+  // Populate month filter
+  var msel=document.getElementById('dash-qchart-mes');
+  if(msel&&msel.options.length===1){
+    for(var mi=0;mi<12;mi++){
+      var opt=document.createElement('option');
+      opt.value=mi; opt.textContent=MF[mi];
+      msel.appendChild(opt);
+    }
+  }
+  var filterMes=msel?msel.value:'';
+  // Collect quincena data for activeYear
+  var qdata=[];
+  for(var mi=0;mi<12;mi++){
+    if(filterMes!==''&&parseInt(filterMes)!==mi) continue;
+    for(var half=1;half<=2;half++){
+      var key='Q'+(mi*2+half)+' '+MS[mi]+' '+activeYear;
+      var q=QNAS[key];
+      var g2=q?qTotal(q):0;
+      var ing2=q?q.ingresoQ+(q.otroIngreso||0):PERFIL.ingresoBase||13000;
+      var sob=ing2-g2;
+      qdata.push({label:'Q'+(mi*2+half)+' '+MS[mi],g:g2,ing:ing2,sob:sob});
+    }
+  }
+  var maxV=0;
+  for(var i=0;i<qdata.length;i++){
+    if(qdata[i].ing>maxV) maxV=qdata[i].ing;
+    if(qdata[i].g>maxV) maxV=qdata[i].g;
+  }
+  if(maxV===0) maxV=1;
+  var barH=90;
+  var html='<div style="overflow-x:auto"><div style="display:flex;align-items:flex-end;gap:4px;height:'+(barH+50)+'px;min-width:'+(qdata.length*52)+'px;padding-bottom:0">';
+  for(var i=0;i<qdata.length;i++){
+    var d=qdata[i];
+    var hi=d.ing>0?Math.max(3,(d.ing/maxV)*barH):2;
+    var hg=d.g>0?Math.max(3,(d.g/maxV)*barH):2;
+    var sobCol=d.sob>=0?'#16A34A':'#DC2626';
+    html+='<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:44px">';
+    html+='<div style="font-size:8px;font-weight:700;color:'+sobCol+';font-family:JetBrains Mono,monospace;margin-bottom:2px">'+MXN(d.sob).replace('MX$','').trim()+'</div>';
+    html+='<div style="display:flex;align-items:flex-end;gap:1px;height:'+barH+'px">';
+    html+='<div style="width:18px;height:'+hi+'px;background:#DCFCE7;border-radius:2px 2px 0 0" title="Ingreso: '+MXN(d.ing)+'"></div>';
+    html+='<div style="width:18px;height:'+hg+'px;background:'+(d.g>d.ing?'#DC2626':'#2563EB')+';border-radius:2px 2px 0 0;opacity:.85" title="Gasto: '+MXN(d.g)+'"></div>';
+    html+='</div>';
+    html+='<div style="font-size:8px;color:var(--tx3);font-weight:700;text-align:center;line-height:1.2;margin-top:3px">'+d.label+'</div>';
+    html+='</div>';
+  }
+  html+='</div></div>';
+  html+='<div style="display:flex;gap:16px;margin-top:8px;font-size:10px;font-weight:700">';
+  html+='<span style="color:#16A34A">■ Ingresos</span>';
+  html+='<span style="color:#2563EB">■ Gastos</span>';
+  html+='<span style="color:#16A34A">+ Sobrante positivo</span>';
+  html+='<span style="color:#DC2626">— Sobrante negativo</span>';
+  html+='</div>';
+  var el=document.getElementById('dash-qchart');
+  if(el) el.innerHTML=html;
+}
+function buildTCPills(r){
+  var p26='', p27='';
+  for(var mi=0;mi<12;mi++){
+    var ok26=r.pagos&&r.pagos[2026]&&r.pagos[2026][mi]==='PAGADO';
+    var ok27=r.pagos&&r.pagos[2027]&&r.pagos[2027][mi]==='PAGADO';
+    p26+='<div class="mp'+(ok26?' ok':'')+'" onclick="toggleMes(\''+r.id+'\',2026,'+mi+')" title="'+MS[mi]+' 2026">'+MS[mi]+'</div>';
+    p27+='<div class="mp'+(ok27?' ok':'')+'" onclick="toggleMes(\''+r.id+'\',2027,'+mi+')" title="'+MS[mi]+' 2027">'+MS[mi]+'</div>';
+  }
+  return {p26:p26, p27:p27};
+}
+function getTCCardInfo(cardId){
+  if(!cardId) return null;
+  for(var i=0;i<TC_CARDS.length;i++) if(TC_CARDS[i].id===cardId) return TC_CARDS[i];
+  return null;
+}
 function renderTC(){
+  // Rebuild card filter selector
+  var csel=document.getElementById('tc-card-filter');
+  if(csel){
+    var prev=csel.value;
+    csel.innerHTML='<option value="">Todas las tarjetas</option>';
+    var usedCards={};
+    for(var i=0;i<TC.length;i++) if(TC[i].cardId) usedCards[TC[i].cardId]=true;
+    for(var i=0;i<TC_CARDS.length;i++){
+      if(usedCards[TC_CARDS[i].id]){
+        var o=document.createElement('option');
+        o.value=TC_CARDS[i].id; o.textContent=TC_CARDS[i].nombre;
+        csel.appendChild(o);
+      }
+    }
+    if(prev) csel.value=prev;
+  }
+
   var tot=TC.reduce(function(s,r){return s+r.monto;},0);
   var pag=TC.reduce(function(s,r){return s+tcCnt(r)*tcPM(r);},0);
   var sal=TC.reduce(function(s,r){return s+tcSaldo(r);},0);
@@ -1138,26 +1376,92 @@ function renderTC(){
   for(var i=0;i<ks.length;i++) kh+='<div class="kpi" style="--ac:'+ks[i].ac+'"><div class="kpi-lb">'+ks[i].lb+'</div><div class="kpi-vl" style="color:'+ks[i].ac+'">'+ks[i].vl+'</div><div class="kpi-sb">'+ks[i].sb+'</div></div>';
   document.getElementById('tc-kpis').innerHTML=kh;
 
-  var list=tcFilter==='TODOS'?TC:TC.filter(function(r){return r.estatus===tcFilter;});
+  // Apply filters
+  var cardFilter=document.getElementById('tc-card-filter')?document.getElementById('tc-card-filter').value:'';
+  var sortBy=document.getElementById('tc-sort')?document.getElementById('tc-sort').value:'fecha';
+  var list=TC.slice();
+  if(tcFilter!=='TODOS') list=list.filter(function(r){return r.estatus===tcFilter;});
+  if(cardFilter) list=list.filter(function(r){return r.cardId===cardFilter;});
+  // Sort
+  list.sort(function(a,b){
+    if(sortBy==='tarjeta') return (a.cardId||'').localeCompare(b.cardId||'');
+    if(sortBy==='monto') return b.monto-a.monto;
+    if(sortBy==='saldo') return tcSaldo(b)-tcSaldo(a);
+    return (b.fecha||'').localeCompare(a.fecha||'');
+  });
+
   if(!list.length){
-    document.getElementById('tc-body').innerHTML='<tr><td colspan="13" style="text-align:center;padding:36px;color:var(--tx3)">Sin registros — <button class="btn btn-p btn-sm" onclick="openTC()">+ Agregar</button></td></tr>';
+    document.getElementById('tc-blocks').innerHTML='<div class="empty" style="padding:40px;text-align:center;color:var(--tx3)">Sin registros — <button class="btn btn-p btn-sm" onclick="openTC()">+ Agregar</button></div>';
     return;
   }
-  var h='';
+
+  // Group by card if sort=tarjeta, else show flat table
+  var html='';
+  if(sortBy==='tarjeta' || cardFilter){
+    // Build groups
+    var groups={};
+    var groupOrder=[];
+    for(var i=0;i<list.length;i++){
+      var key=list[i].cardId||'__sin_tarjeta__';
+      if(!groups[key]){groups[key]=[];groupOrder.push(key);}
+      groups[key].push(list[i]);
+    }
+    for(var gi=0;gi<groupOrder.length;gi++){
+      var gkey=groupOrder[gi];
+      var grecs=groups[gkey];
+      var ci=getTCCardInfo(gkey);
+      var gcolor=ci?ci.color:'#64748B';
+      var gname=ci?ci.nombre:'Sin tarjeta asignada';
+      var gbanco=ci?ci.banco:'';
+      var gtot=grecs.reduce(function(s,r){return s+r.monto;},0);
+      var gsal=grecs.reduce(function(s,r){return s+tcSaldo(r);},0);
+      var gdiapago=ci?ci.pago:null;
+      html+='<div style="margin-bottom:16px">';
+      // Block header
+      html+='<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:8px 8px 0 0;background:'+gcolor+'">';
+      html+='<span style="font-size:13px;font-weight:700;color:#fff">💳 '+gname+'</span>';
+      if(gbanco) html+='<span style="font-size:10px;color:rgba(255,255,255,0.6)">'+gbanco+'</span>';
+      if(gdiapago) html+='<span style="font-size:10px;background:rgba(255,255,255,0.15);color:#fff;padding:2px 8px;border-radius:10px;margin-left:4px">Pago día '+gdiapago+'</span>';
+      html+='<span style="margin-left:auto;font-size:11px;color:rgba(255,255,255,0.75)">'+grecs.length+' compra(s) · Saldo: '+MXN(gsal)+'</span>';
+      html+='</div>';
+      html+=buildTCTable(grecs, false);
+      html+='</div>';
+    }
+  } else {
+    html+=buildTCTable(list, true);
+  }
+  document.getElementById('tc-blocks').innerHTML=html;
+}
+function buildTCTable(list, showCard){
+  var h='<div class="tbl"><table><thead><tr><th>#</th><th style="min-width:200px">Descripción</th>';
+  if(showCard) h+='<th>Tarjeta</th>';
+  h+='<th>Fecha</th><th>Día pago</th><th>Monto</th><th>MSI</th><th>Pago/Mes</th><th>Pagos</th><th>Saldo</th><th>2026</th><th>2027</th><th>Estatus</th><th></th></tr></thead><tbody>';
   for(var i=0;i<list.length;i++){
     var r=list[i];
     var pm=tcPM(r), cnt=tcCnt(r), sal2=tcSaldo(r);
-    // Build pills for each year separately
-    var p26='', p27='';
-    for(var mi=0;mi<12;mi++){
-      var ok26=r.pagos&&r.pagos[2026]&&r.pagos[2026][mi]==='PAGADO';
-      var ok27=r.pagos&&r.pagos[2027]&&r.pagos[2027][mi]==='PAGADO';
-      p26+='<div class="mp'+(ok26?' ok':'')+'" onclick="toggleMes(\''+r.id+'\',2026,'+mi+')" title="'+MS[mi]+' 2026">'+MS[mi]+'</div>';
-      p27+='<div class="mp'+(ok27?' ok':'')+'" onclick="toggleMes(\''+r.id+'\',2027,'+mi+')" title="'+MS[mi]+' 2027">'+MS[mi]+'</div>';
-    }
-    h+='<tr><td class="tdm tdd">'+(i+1)+'</td><td style="font-weight:600;max-width:180px">'+r.desc+'</td><td class="tdm" style="font-size:11px">'+(r.fecha||'—')+'</td><td class="tdm">'+MXN(r.monto)+'</td><td><span class="tag">'+r.meses+'m</span></td><td class="tdm">'+MXN(pm)+'</td><td class="tdm" style="text-align:center">'+cnt+'/'+r.meses+'</td><td class="tdm '+(sal2>0?'tdr':'tdg')+'">'+MXN(sal2)+'</td><td><div class="mpg" style="min-width:234px">'+p26+'</div></td><td><div class="mpg" style="min-width:234px">'+p27+'</div></td><td>'+badge(r.estatus)+'</td><td><div style="display:flex;gap:5px"><button class="btn-ic" onclick="openTC(\''+r.id+'\')">✏️</button><button class="btn-ic" onclick="delTC(\''+r.id+'\')">🗑️</button></div></td></tr>';
+    var pills=buildTCPills(r);
+    var ci=getTCCardInfo(r.cardId);
+    var cardBadge=ci?('<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:'+ci.color+'22;color:'+ci.color+';font-weight:700;border:1px solid '+ci.color+'44">'+ci.nombre+'</span>'):'<span style="color:var(--tx3);font-size:11px">—</span>';
+    var diaPago=r.diaPago||(ci?ci.pago:null);
+    h+='<tr>';
+    h+='<td class="tdm tdd">'+(i+1)+'</td>';
+    h+='<td style="font-weight:600;min-width:200px;max-width:260px">'+r.desc+'</td>';
+    if(showCard) h+='<td>'+cardBadge+'</td>';
+    h+='<td class="tdm" style="font-size:11px;white-space:nowrap">'+(r.fecha||'—')+'</td>';
+    h+='<td style="text-align:center;font-size:11px;font-family:JetBrains Mono,monospace">'+(diaPago?('<span style="background:var(--al);color:var(--amber);padding:2px 7px;border-radius:10px;font-weight:700">día '+diaPago+'</span>'):'—')+'</td>';
+    h+='<td class="tdm">'+MXN(r.monto)+'</td>';
+    h+='<td><span class="tag">'+r.meses+'m</span></td>';
+    h+='<td class="tdm">'+MXN(pm)+'</td>';
+    h+='<td class="tdm" style="text-align:center">'+cnt+'/'+r.meses+'</td>';
+    h+='<td class="tdm '+(sal2>0?'tdr':'tdg')+'">'+MXN(sal2)+'</td>';
+    h+='<td><div class="mpg" style="min-width:220px">'+pills.p26+'</div></td>';
+    h+='<td><div class="mpg" style="min-width:220px">'+pills.p27+'</div></td>';
+    h+='<td>'+badge(r.estatus)+'</td>';
+    h+='<td><div style="display:flex;gap:5px"><button class="btn-ic" onclick="openTC(\''+r.id+'\')">✏️</button><button class="btn-ic" onclick="delTC(\''+r.id+'\')">🗑️</button></div></td>';
+    h+='</tr>';
   }
-  document.getElementById('tc-body').innerHTML=h;
+  h+='</tbody></table></div>';
+  return h;
 }
 
 function filterTC(f, btn){
@@ -1168,6 +1472,27 @@ function filterTC(f, btn){
   renderTC();
 }
 
+function tcAutoFillPago(){
+  var sel=document.getElementById('tc-card');
+  if(!sel) return;
+  var ci=getTCCardInfo(sel.value);
+  if(ci){
+    var dp=document.getElementById('tc-dia-pago');
+    if(dp) dp.value=ci.pago;
+  }
+}
+function populateTCCardSelect(selectedId){
+  var csel=document.getElementById('tc-card');
+  if(!csel) return;
+  csel.innerHTML='<option value="">— Sin tarjeta —</option>';
+  for(var i=0;i<TC_CARDS.length;i++){
+    var opt=document.createElement('option');
+    opt.value=TC_CARDS[i].id;
+    opt.textContent=TC_CARDS[i].nombre+' ('+TC_CARDS[i].banco+')';
+    if(TC_CARDS[i].id===selectedId) opt.selected=true;
+    csel.appendChild(opt);
+  }
+}
 function openTC(id){
   editTCId=id||null;
   var r=id?null:null;
@@ -1178,6 +1503,8 @@ function openTC(id){
   document.getElementById('tc-monto').value=r?r.monto:'';
   document.getElementById('tc-meses').value=r?r.meses:12;
   document.getElementById('tc-est').value=r?r.estatus:'PENDIENTE';
+  document.getElementById('tc-dia-pago').value=r&&r.diaPago?r.diaPago:'';
+  populateTCCardSelect(r?r.cardId||'':'');
   // Build pills
   var yrs=[2026,2027];
   for(var yi=0;yi<yrs.length;yi++){
@@ -1221,7 +1548,7 @@ function saveTC(){
       if(pills[pi].classList.contains('ok')) pagos[yr][pi]='PAGADO';
     }
   }
-  var item={id:editTCId||Date.now().toString(),desc:desc,monto:monto,meses:meses,fecha:document.getElementById('tc-fecha').value,estatus:document.getElementById('tc-est').value,pagos:pagos};
+  var item={id:editTCId||Date.now().toString(),desc:desc,monto:monto,meses:meses,fecha:document.getElementById('tc-fecha').value,estatus:document.getElementById('tc-est').value,pagos:pagos,cardId:document.getElementById('tc-card').value||'',diaPago:parseInt(document.getElementById('tc-dia-pago').value)||null};
   if(editTCId){
     for(var i=0;i<TC.length;i++){if(TC[i].id===editTCId){TC[i]=item;break;}}
   } else {
@@ -1753,6 +2080,67 @@ function savePerfil(){
   toast('Perfil actualizado');
 }
 function renderAcerca(){}
+var editTarjetaId=null;
+function renderTarjetas(){
+  var tipos={credito:'Crédito bancaria',departamental:'Departamental',debito:'Débito'};
+  var h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">';
+  for(var i=0;i<TC_CARDS.length;i++){
+    var t=TC_CARDS[i];
+    var usedCount=TC.filter(function(r){return r.cardId===t.id;}).length;
+    var usedSaldo=TC.filter(function(r){return r.cardId===t.id;}).reduce(function(s,r){return s+tcSaldo(r);},0);
+    h+='<div style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl2);overflow:hidden;box-shadow:var(--sh)">';
+    h+='<div style="height:6px;background:'+t.color+'"></div>';
+    h+='<div style="padding:14px 16px">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">';
+    h+='<div><div style="font-size:14px;font-weight:700;color:var(--tx)">'+t.nombre+'</div>';
+    h+='<div style="font-size:11px;color:var(--tx3);margin-top:2px">'+t.banco+' · '+(tipos[t.tipo]||t.tipo)+'</div></div>';
+    h+='<div style="background:'+t.color+'22;border:1px solid '+t.color+'44;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;color:'+t.color+'">'+t.tipo.toUpperCase()+'</div></div>';
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">';
+    h+='<div style="background:var(--sf2);border-radius:6px;padding:8px 10px"><div style="font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Corte</div><div style="font-size:13px;font-weight:700;color:var(--tx);font-family:JetBrains Mono,monospace">Día '+t.corte+'</div></div>';
+    h+='<div style="background:var(--al);border-radius:6px;padding:8px 10px"><div style="font-size:9px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Pago</div><div style="font-size:13px;font-weight:700;color:var(--amber);font-family:JetBrains Mono,monospace">Día '+t.pago+'</div></div>';
+    h+='</div>';
+    h+='<div style="font-size:11px;color:var(--tx2);margin-bottom:10px">'+usedCount+' compra(s) registrada(s) · Saldo: <strong style="color:var(--red)">'+MXN(usedSaldo)+'</strong></div>';
+    h+='<div style="display:flex;gap:6px"><button class="btn btn-g btn-sm" onclick="openTarjeta(\''+t.id+'\')">✏️ Editar</button><button class="btn btn-d btn-sm" onclick="delTarjeta(\''+t.id+'\')">🗑️</button></div>';
+    h+='</div></div>';
+  }
+  h+='</div>';
+  document.getElementById('tarjetas-grid').innerHTML=h;
+}
+function openTarjeta(id){
+  editTarjetaId=id||null;
+  var t=null;
+  if(id) for(var i=0;i<TC_CARDS.length;i++){if(TC_CARDS[i].id===id){t=TC_CARDS[i];break;}}
+  document.getElementById('m-tarjeta-ttl').textContent=t?'Editar tarjeta':'Nueva tarjeta';
+  document.getElementById('tj-nombre').value=t?t.nombre:'';
+  document.getElementById('tj-banco').value=t?t.banco:'';
+  document.getElementById('tj-tipo').value=t?t.tipo:'credito';
+  document.getElementById('tj-corte').value=t?t.corte:'';
+  document.getElementById('tj-pago').value=t?t.pago:'';
+  document.getElementById('tj-color').value=t?t.color:'#2563EB';
+  document.getElementById('m-tarjeta').style.display='flex';
+}
+function saveTarjeta(){
+  var nombre=document.getElementById('tj-nombre').value.trim();
+  if(!nombre){toast('El nombre es requerido');return;}
+  var id=editTarjetaId||(nombre.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')+'-'+Date.now());
+  var item={id:id,nombre:nombre,banco:document.getElementById('tj-banco').value.trim(),tipo:document.getElementById('tj-tipo').value,corte:parseInt(document.getElementById('tj-corte').value)||1,pago:parseInt(document.getElementById('tj-pago').value)||21,color:document.getElementById('tj-color').value};
+  if(editTarjetaId){
+    for(var i=0;i<TC_CARDS.length;i++){if(TC_CARDS[i].id===editTarjetaId){TC_CARDS[i]=item;break;}}
+  } else {
+    TC_CARDS.push(item);
+  }
+  sv('tc_cards',TC_CARDS);
+  document.getElementById('m-tarjeta').style.display='none';
+  renderTarjetas();
+  toast('Tarjeta guardada');
+}
+function delTarjeta(id){
+  if(!confirm('Eliminar esta tarjeta?')) return;
+  TC_CARDS=TC_CARDS.filter(function(x){return x.id!==id;});
+  sv('tc_cards',TC_CARDS);
+  renderTarjetas();
+  toast('Eliminada');
+}
 function resetAll(){
   if(!confirm('Borrar TODOS los datos? Esta acción no se puede deshacer.')) return;
   var keys=['perfil','tc','qnas','metas','proyectos','cats'];
