@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Quorbit Finanzas — v1.1</title>
+<title>Quorbit Finanzas — v1.2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -332,7 +332,7 @@ tbody td{padding:10px 13px;vertical-align:middle}
           <circle cx="132" cy="8" r="5" fill="none" stroke="#BA7517" stroke-width="2"/>
           <circle cx="132" cy="8" r="1.5" fill="#BA7517"/>
         </svg>
-        <div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.3px;margin-top:2px">Finanzas · v1.1</div>
+        <div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.3px;margin-top:2px">Finanzas · v1.2</div>
       </div>
       <!-- User profile -->
       <div style="display:flex;align-items:center;gap:10px">
@@ -358,7 +358,7 @@ tbody td{padding:10px 13px;vertical-align:middle}
       <button class="nb" onclick="goPage('perfil',this)"><span class="ni">⚙️</span><span>Perfil y ajustes</span></button>
       <button class="nb" onclick="goPage('acerca',this)"><span class="ni">ℹ️</span><span>Acerca de</span></button>
     </nav>
-    <div class="sb-ft"><div style="font-size:9px;color:rgba(255,255,255,0.2);line-height:1.7">Quorbit Finanzas v1.1<br>Datos locales · <span id="sb-yr">2026</span></div></div>
+    <div class="sb-ft"><div style="font-size:9px;color:rgba(255,255,255,0.2);line-height:1.7">Quorbit Finanzas v1.2<br>Datos locales · <span id="sb-yr">2026</span></div></div>
   </aside>
 
   <div class="main">
@@ -391,6 +391,10 @@ tbody td{padding:10px 13px;vertical-align:middle}
         <div class="card"><div class="card-hd"><div class="card-ttl">🎯 Metas activas</div><button class="btn btn-g btn-sm" onclick="goPage('metas',null)">Ver todas →</button></div><div class="card-bd" id="dash-metas"></div></div>
         <div class="card"><div class="card-hd"><div class="card-ttl">🌅 Proyectos</div><button class="btn btn-g btn-sm" onclick="goPage('proyectos',null)">Ver todos →</button></div><div class="card-bd" id="dash-proys"></div></div>
       </div>
+      <div class="g2">
+        <div class="card"><div class="card-hd"><div class="card-ttl">🛒 Lista de deseos</div><button class="btn btn-g btn-sm" onclick="goPage('deseos',null)">Ver todos →</button></div><div class="card-bd" id="dash-deseos"></div></div>
+        <div class="card"><div class="card-hd"><div class="card-ttl">💳 Pago mes actual</div><button class="btn btn-g btn-sm" onclick="goPage('tc',null)">Ver detalle →</button></div><div class="card-bd" id="dash-tc-pago"></div></div>
+      </div>
       <div class="card"><div class="card-hd"><div class="card-ttl">📅 Quincena activa</div><button class="btn btn-p btn-sm" onclick="goPage('quincenas',null)">Ir a quincenas →</button></div><div class="card-bd" id="dash-qna"></div></div>
       <div class="card"><div class="card-hd"><div class="card-ttl">📊 Ingresos vs Gastos por quincena</div>
         <div style="display:flex;gap:6px;align-items:center">
@@ -406,10 +410,10 @@ tbody td{padding:10px 13px;vertical-align:middle}
     <div class="page" id="page-tc">
       <div class="ph"><div><div class="pt">💳 Tarjeta de crédito</div><div class="ps">Compras a meses sin intereses</div></div><button class="btn btn-p" onclick="openTC()">+ Nueva compra</button></div>
       <div class="g3" id="tc-kpis"></div>
-      <!-- Pago del mes corriente -->
+      <!-- Pago mes actual + siguiente -->
       <div class="card" style="margin-bottom:16px">
         <div class="card-hd">
-          <div class="card-ttl" id="tc-pago-mes-ttl">📅 Pago del mes corriente</div>
+          <div class="card-ttl" id="tc-pago-mes-ttl">📅 Resumen de pagos</div>
           <span style="font-size:10px;color:var(--tx3)" id="tc-pago-mes-sub"></span>
         </div>
         <div class="card-bd" id="tc-pago-mes-grid"></div>
@@ -1315,7 +1319,9 @@ function renderDash(){
   var q=QNAS[qk];
   if(q){
     var tot=qTotal(q), sob2=qSob(q), ing2=q.ingresoQ+(q.otroIngreso||0);
-    renderDashQChart();
+    renderDashDeseos();
+  renderDashTCPagoMini();
+  renderDashQChart();
   document.getElementById('dash-qna').innerHTML='<div style="font-size:13px;font-weight:700;margin-bottom:14px">'+q.label+'</div><div class="g3" style="margin-bottom:0"><div style="background:var(--gl);border-radius:8px;padding:12px;text-align:center"><div style="font-size:9px;font-weight:700;color:#15803D;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Ingreso</div><div style="font-family:JetBrains Mono,monospace;font-size:16px;font-weight:600;color:#15803D">'+MXN(ing2)+'</div></div><div style="background:var(--rl);border-radius:8px;padding:12px;text-align:center"><div style="font-size:9px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Gastos</div><div style="font-family:JetBrains Mono,monospace;font-size:16px;font-weight:600;color:var(--red)">'+MXN(tot)+'</div></div><div style="background:'+(sob2>=0?'var(--tl)':'var(--rl)')+';border-radius:8px;padding:12px;text-align:center"><div style="font-size:9px;font-weight:700;color:'+(sob2>=0?'var(--teal)':'var(--red)')+';text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Sobrante</div><div style="font-family:JetBrains Mono,monospace;font-size:16px;font-weight:600;color:'+(sob2>=0?'var(--teal)':'var(--red)')+'">'+MXN(sob2)+'</div></div></div>';
   } else {
     document.getElementById('dash-qna').innerHTML='<div class="empty">Sin datos para esta quincena del año '+activeYear+'</div>';
@@ -2125,7 +2131,7 @@ function exportarJSON(){
     proyectos:PROYECTOS,
     cats:CATS,
     exportadoEn:new Date().toISOString(),
-    version:'v1.0',producto:'Quorbit Finanzas'
+    version:'v1.2',producto:'Quorbit Finanzas'
   };
   var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   var url=URL.createObjectURL(blob);
@@ -2177,85 +2183,169 @@ function savePerfil(){
   renderPerfil();
   toast('Perfil actualizado');
 }
-function renderTCPagoMes(){
+function calcTCPagoMes(mesOffset){
+  // mesOffset: 0=actual, 1=siguiente
   var now=new Date();
-  var mes=now.getMonth();
-  var anio=now.getFullYear();
-  var lbl=document.getElementById('tc-pago-mes-ttl');
-  var sub=document.getElementById('tc-pago-mes-sub');
-  var grid=document.getElementById('tc-pago-mes-grid');
-  if(!lbl||!grid) return;
-  lbl.textContent='Pago del mes — '+MF[mes]+' '+anio;
-  // Group active TC by card, calculate what to pay this month
+  var mes=(now.getMonth()+mesOffset)%12;
+  var anio=now.getFullYear()+(now.getMonth()+mesOffset>=12?1:0);
   var byCard={};
   var cardOrder=[];
   for(var i=0;i<TC.length;i++){
     var r=TC[i];
     if(r.estatus==='CANCELADO'||r.estatus==='PAGADO') continue;
-    var sal=tcSaldo(r);
-    if(sal<=0) continue;
+    if(tcSaldo(r)<=0) continue;
     var cid=r.cardId||'__sin_tarjeta__';
     if(!byCard[cid]){byCard[cid]=[];cardOrder.push(cid);}
     byCard[cid].push(r);
   }
-  if(!cardOrder.length){
-    grid.innerHTML='<div class="empty" style="padding:20px"><div class="empty-t">Sin pagos pendientes este mes</div></div>';
-    if(sub) sub.textContent='Todo al corriente';
-    return;
-  }
-  var totalMes=0;
-  var html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">';
+  var result={cards:[],total:0,mes:mes,anio:anio};
   for(var gi=0;gi<cardOrder.length;gi++){
     var cid=cardOrder[gi];
     var recs=byCard[cid];
     var ci=getTCCardInfo(cid);
-    var color=ci?ci.color:'#64748B';
-    var cardNm=ci?ci.nombre:'Sin tarjeta';
-    var diaPago=ci?ci.pago:null;
-    // Sum pago mensual for this card
     var pagoTotal=recs.reduce(function(s,r){return s+tcPM(r);},0);
-    totalMes+=pagoTotal;
-    // Check if already paid this month (if month pill is marked)
-    var yaPagado=true;
-    for(var ri=0;ri<recs.length;ri++){
-      var r2=recs[ri];
-      var paid=r2.pagos&&r2.pagos[anio]&&r2.pagos[anio][mes]==='PAGADO';
-      if(!paid){yaPagado=false;break;}
-    }
-    html+='<div class="pago-mes-card" style="--pc:'+color+'">';
-    html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">';
-    html+='<div><div style="font-size:13px;font-weight:700;color:var(--tx)">💳 '+cardNm+'</div>';
-    if(diaPago) html+='<div style="font-size:11px;color:var(--amber);font-weight:600;margin-top:2px">Vence día '+diaPago+'</div>';
-    html+='</div>';
-    if(yaPagado){
-      html+='<span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--gl);color:#15803D">✓ Pagado</span>';
+    result.total+=pagoTotal;
+    result.cards.push({ci:ci,cid:cid,recs:recs,total:pagoTotal});
+  }
+  return result;
+}
+function renderTCPagoMes(){
+  var lbl=document.getElementById('tc-pago-mes-ttl');
+  var sub=document.getElementById('tc-pago-mes-sub');
+  var grid=document.getElementById('tc-pago-mes-grid');
+  if(!grid) return;
+  var actual=calcTCPagoMes(0);
+  var siguiente=calcTCPagoMes(1);
+  if(lbl) lbl.textContent='Resumen de pagos TC';
+  if(sub) sub.textContent=MF[actual.mes]+' vs '+MF[siguiente.mes];
+  if(!actual.cards.length&&!siguiente.cards.length){
+    grid.innerHTML='<div class="empty" style="padding:20px"><div class="empty-t">Sin pagos pendientes</div></div>';
+    return;
+  }
+  // Two-column layout: mes actual | mes siguiente
+  var html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
+  // Column headers
+  var cols=[actual,siguiente];
+  var colLabels=['Mes actual — '+MF[actual.mes],'Mes siguiente — '+MF[siguiente.mes]];
+  for(var ci2=0;ci2<2;ci2++){
+    var col=cols[ci2];
+    html+='<div>';
+    html+='<div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--bd)">'+colLabels[ci2]+'</div>';
+    if(!col.cards.length){
+      html+='<div style="font-size:12px;color:var(--tx3);padding:10px 0">Sin pagos este mes</div>';
     } else {
-      html+='<span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--rl);color:var(--red)">Pendiente</span>';
+      for(var ki=0;ki<col.cards.length;ki++){
+        var card=col.cards[ki];
+        var color=card.ci?card.ci.color:'#64748B';
+        var nm=card.ci?card.ci.nombre:'Sin tarjeta';
+        var dia=card.ci?card.ci.pago:null;
+        html+='<div class="pago-mes-card" style="--pc:'+color+';margin-bottom:8px">';
+        html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+        html+='<div><div style="font-size:12px;font-weight:700;color:var(--tx)">'+nm+'</div>';
+        if(dia) html+='<div style="font-size:10px;color:var(--amber);font-weight:600">Vence día '+dia+'</div>';
+        html+='</div>';
+        html+='<div style="font-family:JetBrains Mono,monospace;font-size:15px;font-weight:700;color:'+color+'">'+MXN(card.total)+'</div>';
+        html+='</div>';
+        for(var ri=0;ri<card.recs.length;ri++){
+          var r=card.recs[ri];
+          html+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;color:var(--tx2)">';
+          html+='<span style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.desc+'</span>';
+          html+='<span style="font-family:JetBrains Mono,monospace;font-weight:600;color:var(--tx)">'+MXN(tcPM(r))+'</span>';
+          html+='</div>';
+        }
+        html+='</div>';
+      }
     }
+    html+='<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--bd);display:flex;justify-content:space-between">';
+    html+='<span style="font-size:12px;font-weight:700;color:var(--tx)">Total</span>';
+    html+='<span style="font-family:JetBrains Mono,monospace;font-size:14px;font-weight:700;color:var(--red)">'+MXN(col.total)+'</span>';
     html+='</div>';
-    html+='<div style="font-family:JetBrains Mono,monospace;font-size:20px;font-weight:700;color:'+color+';margin-bottom:8px">'+MXN(pagoTotal)+'</div>';
-    html+='<div style="font-size:11px;color:var(--tx3)">'+recs.length+' compra(s) activa(s)</div>';
-    // List purchases
-    html+='<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--bd)">';
-    for(var ri=0;ri<recs.length;ri++){
-      var r3=recs[ri];
-      var pm=tcPM(r3);
-      html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px">';
-      html+='<span style="color:var(--tx2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r3.desc+'</span>';
-      html+='<span style="font-family:JetBrains Mono,monospace;color:var(--tx);font-weight:600">'+MXN(pm)+'</span>';
-      html+='</div>';
-    }
-    html+='</div></div>';
+    html+='</div>';
   }
   html+='</div>';
-  html+='<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center">';
-  html+='<span style="font-size:13px;font-weight:700;color:var(--tx)">Total a pagar este mes</span>';
-  html+='<span style="font-family:JetBrains Mono,monospace;font-size:18px;font-weight:700;color:var(--red)">'+MXN(totalMes)+'</span>';
-  html+='</div>';
   grid.innerHTML=html;
-  if(sub) sub.textContent=cardOrder.length+' tarjeta(s) · '+MXN(totalMes)+' total';
 }
-
+function renderDashTCPagoMini(){
+  var el=document.getElementById('dash-tc-pago');
+  if(!el) return;
+  var actual=calcTCPagoMes(0);
+  var siguiente=calcTCPagoMes(1);
+  if(!actual.cards.length&&!siguiente.cards.length){
+    el.innerHTML='<div class="empty" style="padding:20px"><div class="empty-t">Sin pagos pendientes</div></div>';
+    return;
+  }
+  var h='';
+  // Mes actual
+  h+='<div style="margin-bottom:12px"><div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">'+MF[actual.mes]+'</div>';
+  if(!actual.cards.length){
+    h+='<div style="font-size:12px;color:var(--tx3)">Sin pagos</div>';
+  } else {
+    for(var i=0;i<actual.cards.length;i++){
+      var cd=actual.cards[i];
+      var col=cd.ci?cd.ci.color:'#64748B';
+      h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bd)">';
+      h+='<span style="font-size:12px;font-weight:600;color:var(--tx)">'+(cd.ci?cd.ci.nombre:'Sin tarjeta')+'</span>';
+      h+='<span style="font-family:JetBrains Mono,monospace;font-size:12px;font-weight:700;color:'+col+'">'+MXN(cd.total)+'</span>';
+      h+='</div>';
+    }
+    h+='<div style="display:flex;justify-content:space-between;margin-top:5px"><span style="font-size:11px;font-weight:700;color:var(--tx2)">Total</span><span style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;color:var(--red)">'+MXN(actual.total)+'</span></div>';
+  }
+  h+='</div>';
+  // Mes siguiente
+  h+='<div style="padding-top:10px;border-top:2px dashed var(--bd)"><div style="font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">'+MF[siguiente.mes]+' (siguiente)</div>';
+  if(!siguiente.cards.length){
+    h+='<div style="font-size:12px;color:var(--tx3)">Sin pagos</div>';
+  } else {
+    for(var i=0;i<siguiente.cards.length;i++){
+      var cd=siguiente.cards[i];
+      var col=cd.ci?cd.ci.color:'#64748B';
+      h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bd)">';
+      h+='<span style="font-size:12px;font-weight:600;color:var(--tx)">'+(cd.ci?cd.ci.nombre:'Sin tarjeta')+'</span>';
+      h+='<span style="font-family:JetBrains Mono,monospace;font-size:12px;font-weight:700;color:'+col+'">'+MXN(cd.total)+'</span>';
+      h+='</div>';
+    }
+    h+='<div style="display:flex;justify-content:space-between;margin-top:5px"><span style="font-size:11px;font-weight:700;color:var(--tx2)">Total</span><span style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;color:var(--amber)">'+MXN(siguiente.total)+'</span></div>';
+  }
+  h+='</div>';
+  el.innerHTML=h;
+}
+function renderDashDeseos(){
+  var el=document.getElementById('dash-deseos');
+  if(!el) return;
+  var pending=DESEOS.filter(function(d){return d.estatus==='pendiente';});
+  if(!pending.length){
+    el.innerHTML='<div class="empty" style="padding:20px"><div class="empty-t">Sin artículos pendientes</div></div>';
+    return;
+  }
+  // Sort by prioridad: importante first, then programado, then deseado
+  var order={importante:0,programado:1,deseado:2};
+  pending.sort(function(a,b){return (order[a.prioridad]||2)-(order[b.prioridad]||2);});
+  var totalPend=pending.reduce(function(s,d){return s+(d.precio||0);},0);
+  var priorColor={importante:'#DC2626',deseado:'#2563EB',programado:'#0D9488'};
+  var priorIcon={importante:'⭐',deseado:'💭',programado:'📅'};
+  var h='';
+  // Summary strip
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--bd)">';
+  h+='<span style="font-size:12px;color:var(--tx2)">'+pending.length+' artículo(s) pendiente(s)</span>';
+  h+='<span style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;color:var(--amber)">'+MXN(totalPend)+'</span>';
+  h+='</div>';
+  // List top 5
+  var shown=pending.slice(0,5);
+  for(var i=0;i<shown.length;i++){
+    var d=shown[i];
+    var dc=priorColor[d.prioridad]||'#2563EB';
+    h+='<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)">';
+    h+='<span style="font-size:16px">'+(d.emoji||'🛒')+'</span>';
+    h+='<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+d.nombre+'</div>';
+    h+='<div style="font-size:10px;color:'+dc+'">'+( priorIcon[d.prioridad]||'')+ ' '+(d.prioridad||'')+'</div></div>';
+    h+=(d.precio>0?'<span style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:700;color:var(--tx2);white-space:nowrap">'+MXN(d.precio)+'</span>':'');
+    h+='</div>';
+  }
+  if(pending.length>5){
+    h+='<div style="font-size:11px;color:var(--tx3);text-align:center;margin-top:8px">+' + (pending.length-5)+' más</div>';
+  }
+  el.innerHTML=h;
+}
 var editDeseoId=null;
 var deseoFilter='TODOS';
 
@@ -2395,14 +2485,14 @@ function renderAcerca(){
   html+='<div><div style="font-size:11px;font-style:italic;color:var(--tx2);margin-bottom:6px">Decisiones mas inteligentes, negocios mas fuertes.</div>';
   html+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
   html+='<span style="font-size:11px;padding:3px 10px;border-radius:20px;background:var(--bl);color:var(--blue2);font-weight:600">v1.1 · 2026</span>';
-  html+='<span style="font-size:11px;padding:3px 10px;border-radius:20px;background:var(--gl);color:#15803D;font-weight:600">Fase 1 — MVP</span>';
+  // Fase 1 badge removed
   html+='<span style="font-size:11px;padding:3px 10px;border-radius:20px;background:var(--al);color:var(--amber);font-weight:600">Standalone HTML</span>';
   html+='</div></div></div></div></div>';
   // Grid producto + creador
   html+='<div class="g2">';
   // Producto
   html+='<div class="card"><div class="card-hd"><div class="card-ttl">📱 Sobre este producto</div></div><div class="card-bd">';
-  var prodRows=[['Producto','Quorbit Finanzas'],['Version','1.1.0'],['Año','2026'],['Tecnologia','HTML · CSS · JavaScript'],['Almacenamiento','localStorage (navegador)'],['Plataforma','Web · Standalone']];
+  var prodRows=[['Producto','Quorbit Finanzas'],['Version','1.2.0'],['Año','2026'],['Plataforma','Web · App']];
   html+='<div style="display:flex;flex-direction:column;gap:0">';
   for(var i=0;i<prodRows.length;i++){
     var bg=i%2===0?'background:var(--sf)':'background:var(--sf2)';
@@ -2416,7 +2506,7 @@ function renderAcerca(){
   html+='<div><div style="font-size:15px;font-weight:700;color:var(--tx)">Juances</div>';
   html+='<div style="font-size:11px;color:var(--tx3)">Juan Carlos Cruz Estrada</div>';
   html+='<div style="font-size:11px;color:var(--tx2);margin-top:2px">ISC · M.Sc. IA & Ciberseguridad</div></div></div>';
-  var crRows=[['Empresa','Quorbit'],['Handle','@Juances'],['Web','jcarloscruzestrada-ux.github.io'],['Ubicacion','Mexico']];
+  var crRows=[['Empresa','Quorbit'],['Handle','@Juances'],['Web','https://quorbitintelligence.github.io/index/'],['Ubicacion','Mexico']];
   html+='<div style="display:flex;flex-direction:column;gap:0">';
   for(var i=0;i<crRows.length;i++){
     var bg=i%2===0?'background:var(--sf)':'background:var(--sf2)';
@@ -2438,10 +2528,14 @@ function renderAcerca(){
   // Roadmap
   html+='<div class="card" style="margin-bottom:16px"><div class="card-hd"><div class="card-ttl">🔭 Proximamente — v2.0 Roadmap</div></div><div class="card-bd">';
   html+='<div style="display:flex;flex-direction:column;gap:8px">';
-  var road=[['var(--bl)','var(--blue2)','☁️','Quorbit Cloud — Login y datos sincronizados en la nube'],['var(--bl)','var(--blue2)','👥','Multi-usuario — Compartir con pareja o familia'],['var(--bl)','var(--blue2)','📱','App movil — iOS y Android via Capacitor'],['var(--al)','var(--amber)','🤖','Quorbit AI — Analisis inteligente de gastos'],['var(--al)','var(--amber)','🗂️','Quorbit CRM — Gestion de clientes para PYMES']];
+  var road=[['var(--bl)','var(--blue2)','☁️','Quorbit Cloud — Login y datos sincronizados en la nube'],['var(--bl)','var(--blue2)','👥','Multi-usuario — Compartir con pareja o familia'],['var(--bl)','var(--blue2)','📱','App movil — iOS y Android via Capacitor'],['var(--al)','var(--amber)','🤖','Quorbit AI — Analisis inteligente de gastos']];
   for(var i=0;i<road.length;i++){
     html+='<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:'+road[i][0]+';border-radius:8px"><span style="font-size:14px">'+road[i][2]+'</span><div style="font-size:12px;color:'+road[i][1]+'">'+road[i][3]+'</div></div>';
   }
+  html+='<div style="margin-top:14px;display:flex;justify-content:center">';
+  html+='<a href="https://quorbitintelligence.github.io/index/" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:#fff;padding:10px 22px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none">';
+  html+='<span>🌐</span><span>Conoce mas productos Quorbit</span></a>';
+  html+='</div>';
   html+='</div></div></div>';
   // Privacidad
   html+='<div style="background:var(--tl);border:1.5px solid var(--teal);border-radius:var(--r);padding:16px 20px;margin-bottom:16px;display:flex;align-items:flex-start;gap:14px">';
@@ -2462,7 +2556,7 @@ function renderAcerca(){
   html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);padding:16px 24px;gap:16px">';
   html+='<div><div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Empresa</div><div style="font-size:12px;color:#fff;font-weight:600">Quorbit</div><div style="font-size:11px;color:rgba(255,255,255,0.45);margin-top:2px">Tecnologia · Software · IA</div><div style="font-size:11px;color:rgba(255,255,255,0.45)">Mexico · 2026</div></div>';
   html+='<div><div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Fundador y CEO</div><div style="font-size:12px;color:#fff;font-weight:600">Juan Carlos Cruz Estrada</div><div style="font-size:11px;color:rgba(255,255,255,0.45);margin-top:2px">ISC · M.Sc. IA & Ciberseguridad</div><div style="font-size:11px;color:#BA7517;margin-top:2px">@Juances</div></div>';
-  html+='<div><div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Contacto</div><div style="font-size:11px;color:rgba(255,255,255,0.6);line-height:1.8">quorbit.io<br>jcarloscruzestrada-ux.github.io<br>Mexico</div></div>';
+  html+='<div><div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Contacto</div><div style="font-size:11px;color:rgba(255,255,255,0.6);line-height:1.8"><a href="https://quorbitintelligence.github.io/index/" target="_blank" style="color:#BA7517">quorbitintelligence.github.io</a><br>@Juances<br>Mexico</div></div>';
   html+='</div>';
   html+='<div style="padding:12px 24px;border-top:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.2);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">';
   html+='<div style="font-size:10px;color:rgba(255,255,255,0.3)">© 2026 Quorbit · Juan Carlos Cruz Estrada · Todos los derechos reservados</div>';
