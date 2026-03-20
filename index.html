@@ -134,6 +134,10 @@ tbody td{padding:10px 13px;vertical-align:middle}
 /* Month pills */
 .mpg{display:flex;gap:2px;flex-wrap:wrap}
 .mp{width:26px;height:18px;border-radius:3px;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;background:var(--sf2);color:var(--tx3);cursor:pointer;transition:all .12s;border:1.5px solid transparent}
+.mp.pending{background:#FEE2E2;color:#991B1B;border-color:#FECACA}
+.mp.ok{background:#DCFCE7;color:#15803D;border-color:#BBF7D0}
+.mp.locked{opacity:.5;cursor:not-allowed;pointer-events:none}
+.tc-locked-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--sf2);color:var(--tx3);border:1px solid var(--bd);margin-left:6px}
 .mp.ok{background:var(--gl);color:#15803D;border-color:#86EFAC}
 .mp:hover{border-color:var(--blue);transform:scale(1.1)}
 
@@ -347,7 +351,7 @@ tbody td{padding:10px 13px;vertical-align:middle}
           <circle cx="132" cy="8" r="5" fill="none" stroke="#BA7517" stroke-width="2"/>
           <circle cx="132" cy="8" r="1.5" fill="#BA7517"/>
         </svg>
-        <div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.3px;margin-top:2px">Finanzas · v1.4</div>
+        <div style="font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.3px;margin-top:2px">Finanzas · v1.5</div>
       </div>
       <!-- User profile -->
       <div style="display:flex;align-items:center;gap:10px">
@@ -362,19 +366,20 @@ tbody td{padding:10px 13px;vertical-align:middle}
       <div class="sb-grp">Principal</div>
       <button class="nb active" onclick="goPage('dashboard',this)"><span class="ni">📊</span><span>Dashboard</span></button>
       <div class="sb-grp">Módulos</div>
-      <button class="nb" onclick="goPage('tc',this)"><span class="ni">💳</span><span>Tarjeta de crédito</span></button>
+      <button class="nb" onclick="goPage('tc',this)"><span class="ni">💳</span><span>Compras TC</span></button>
       <button class="nb" onclick="goPage('quincenas',this)"><span class="ni">💰</span><span>Quincenas</span></button>
       <button class="nb" onclick="goPage('metas',this)"><span class="ni">🎯</span><span>Metas de ahorro</span></button>
       <button class="nb" onclick="goPage('proyectos',this)"><span class="ni">🌅</span><span>Proyectos futuros</span></button>
       <button class="nb" onclick="goPage('deseos',this)"><span class="ni">🛒</span><span>Lista de deseos</span></button>
       <button class="nb" onclick="goPage('stats',this)"><span class="ni">📈</span><span>Estadísticas</span></button>
+      <button class="nb" onclick="goPage('reminders',this)"><span class="ni">🔔</span><span>Recordatorios</span></button>
       <div class="sb-grp">Config</div>
       <button class="nb" onclick="goPage('catalogos',this)"><span class="ni">📋</span><span>Catálogos</span></button>
       <button class="nb" onclick="goPage('tarjetas',this)"><span class="ni">💳</span><span>Mis tarjetas</span></button>
       <button class="nb" onclick="goPage('perfil',this)"><span class="ni">⚙️</span><span>Perfil y ajustes</span></button>
       <button class="nb" onclick="goPage('acerca',this)"><span class="ni">ℹ️</span><span>Acerca de</span></button>
     </nav>
-    <div class="sb-ft"><div style="font-size:9px;color:rgba(255,255,255,0.2);line-height:1.7">Quorbitt Finanzas v1.4<br>Datos locales · <span id="sb-yr">2026</span></div></div>
+    <div class="sb-ft"><div style="font-size:9px;color:rgba(255,255,255,0.2);line-height:1.7">Quorbitt Finanzas v1.5<br>Datos locales · <span id="sb-yr">2026</span></div></div>
   </aside>
 
   <div class="main">
@@ -424,7 +429,7 @@ tbody td{padding:10px 13px;vertical-align:middle}
 
     <!-- TC -->
     <div class="page" id="page-tc">
-      <div class="ph"><div><div class="pt">💳 Tarjeta de crédito</div><div class="ps">Compras a meses sin intereses</div></div><button class="btn btn-p" onclick="openTC()">+ Nueva compra</button></div>
+      <div class="ph"><div><div class="pt">💳 Compras con Tarjeta(s) de crédito</div><div class="ps">Control de compras a meses sin intereses</div></div><button class="btn btn-p" onclick="openTC()">+ Nueva compra</button></div>
       <div class="g3" id="tc-kpis"></div>
       <!-- Pago mes actual + siguiente -->
       <div class="card" style="margin-bottom:16px">
@@ -433,6 +438,10 @@ tbody td{padding:10px 13px;vertical-align:middle}
           <span style="font-size:10px;color:var(--tx3)" id="tc-pago-mes-sub"></span>
         </div>
         <div class="card-bd" id="tc-pago-mes-grid"></div>
+      </div>
+      <!-- Buscador TC -->
+      <div style="margin-bottom:10px">
+        <input class="finp" id="tc-search" placeholder="🔍 Buscar artículo... (cualquier combinación de letras)" oninput="renderTC()" style="font-size:12px;width:100%">
       </div>
       <!-- Filtros y agrupador -->
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
@@ -465,6 +474,9 @@ tbody td{padding:10px 13px;vertical-align:middle}
         <button class="btn btn-g" onclick="addYear()">+ Agregar año</button>
       </div>
       <div class="g3" id="qna-kpis"></div>
+      <div style="margin-bottom:10px">
+        <input class="finp" id="qna-search" placeholder="🔍 Buscar movimiento en quincenas... (concepto, descripción, monto)" oninput="renderQnas()" style="font-size:12px;width:100%">
+      </div>
       <div class="tabs" id="qna-tabs"></div>
       <div id="qna-blocks"></div>
     </div>
@@ -506,6 +518,20 @@ tbody td{padding:10px 13px;vertical-align:middle}
         <button class="tab" onclick="filterDeseos('comprado',this)">Comprados</button>
       </div>
       <div id="deseos-grid"></div>
+    </div>
+
+    <!-- RECORDATORIOS -->
+    <div class="page" id="page-reminders">
+      <div class="ph"><div><div class="pt">🔔 Recordatorios</div><div class="ps">Alertas programadas desde TC y Quincenas</div></div></div>
+      <div class="g3" id="reminders-kpis"></div>
+      <div class="tabs" id="reminders-tabs">
+        <button class="tab active" onclick="filterReminders('todos',this)">Todos</button>
+        <button class="tab" onclick="filterReminders('pendiente',this)">Pendientes</button>
+        <button class="tab" onclick="filterReminders('hoy',this)">Hoy</button>
+        <button class="tab" onclick="filterReminders('vencido',this)">Vencidos</button>
+        <button class="tab" onclick="filterReminders('completado',this)">Completados</button>
+      </div>
+      <div id="reminders-list"></div>
     </div>
 
     <!-- ESTADÍSTICAS -->
@@ -610,17 +636,36 @@ tbody td{padding:10px 13px;vertical-align:middle}
         </select>
       </div>
     </div>
-    <!-- Fila 2: 4 campos compactos -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px">
+    <!-- Fila 2: campos compactos -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px">
       <div class="fgrp"><div class="flbl">Fecha compra</div><input type="date" class="finp" id="tc-fecha"></div>
-      <div class="fgrp"><div class="flbl">Día pago mensual</div><input type="number" class="finp" id="tc-dia-pago" min="1" max="31" placeholder="Ej: 21"></div>
+      <div class="fgrp"><div class="flbl">Día pago</div><input type="number" class="finp" id="tc-dia-pago" min="1" max="31" placeholder="21"></div>
       <div class="fgrp"><div class="flbl">Monto total ($)</div><input type="number" class="finp" id="tc-monto" oninput="tcPreview()"></div>
-      <div class="fgrp"><div class="flbl">Meses MSI</div>
-        <select class="finp" id="tc-meses" onchange="tcPreview()">
+      <div class="fgrp"><div class="flbl">MSI</div>
+        <select class="finp" id="tc-meses" onchange="tcCalcPills()">
           <option value="1">1 (contado)</option><option value="3">3</option><option value="6">6</option>
           <option value="9">9</option><option value="12" selected>12</option>
           <option value="18">18</option><option value="24">24</option>
         </select>
+      </div>
+    </div>
+    <!-- Fila inicio pago -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+      <div class="fgrp"><div class="flbl">Mes inicio pago</div>
+        <select class="finp" id="tc-mes-inicio" onchange="tcCalcPills()">
+          <option value="0">Enero</option><option value="1">Febrero</option><option value="2">Marzo</option>
+          <option value="3">Abril</option><option value="4">Mayo</option><option value="5">Junio</option>
+          <option value="6">Julio</option><option value="7">Agosto</option><option value="8">Septiembre</option>
+          <option value="9">Octubre</option><option value="10">Noviembre</option><option value="11">Diciembre</option>
+        </select>
+      </div>
+      <div class="fgrp"><div class="flbl">Año inicio</div>
+        <select class="finp" id="tc-anio-inicio" onchange="tcCalcPills()">
+          <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
+        </select>
+      </div>
+      <div class="fgrp"><div class="flbl" id="tc-ref-pago-lbl" style="color:var(--amber)">Ref. pago tarjeta</div>
+        <div id="tc-ref-pago" style="font-size:12px;font-weight:700;color:var(--amber);padding:8px 10px;background:var(--al);border-radius:8px;min-height:36px;display:flex;align-items:center">—</div>
       </div>
     </div>
     <!-- Fila 3: estatus -->
@@ -633,10 +678,30 @@ tbody td{padding:10px 13px;vertical-align:middle}
       </div>
       <div id="tc-preview"></div>
     </div>
-    <div id="tc-months" style="margin-top:12px;display:none">
-      <div class="flbl" style="margin-bottom:8px">Meses pagados — clic para marcar</div>
+    <div id="tc-months" style="margin-top:10px;display:none">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div class="flbl" style="margin:0">Meses del plan — 🔴 pendiente · 🟢 pagado</div>
+        <span style="font-size:10px;color:var(--tx3)" id="tc-pills-info"></span>
+      </div>
       <div style="margin-bottom:6px"><div style="font-size:9px;font-weight:700;color:var(--tx2);margin-bottom:4px">2026</div><div class="mpg" id="tc-p26"></div></div>
-      <div><div style="font-size:9px;font-weight:700;color:var(--tx2);margin-bottom:4px">2027</div><div class="mpg" id="tc-p27"></div></div>
+      <div style="margin-bottom:6px"><div style="font-size:9px;font-weight:700;color:var(--tx2);margin-bottom:4px">2027</div><div class="mpg" id="tc-p27"></div></div>
+      <div><div style="font-size:9px;font-weight:700;color:var(--tx2);margin-bottom:4px">2028</div><div class="mpg" id="tc-p28"></div></div>
+    </div>
+    <!-- Recordatorio -->
+    <div style="margin-bottom:10px;padding:10px;background:var(--al);border-radius:8px;border:1px solid var(--bd)">
+      <div class="flbl" style="margin-bottom:8px;color:var(--amber)">🔔 Recordatorio de pago (opcional)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div class="fgrp"><div class="flbl">Fecha recordatorio</div><input type="date" class="finp" id="tc-rem-fecha"></div>
+        <div class="fgrp"><div class="flbl">Hora</div><input type="time" class="finp" id="tc-rem-hora" value="09:00"></div>
+        <div class="fgrp"><div class="flbl">Tipo</div>
+          <select class="finp" id="tc-rem-tipo">
+            <option value="">Sin recordatorio</option>
+            <option value="unico">Único</option>
+            <option value="mensual">Mensual</option>
+          </select>
+        </div>
+      </div>
+      <div class="fgrp" style="margin-top:6px"><div class="flbl">Nota del recordatorio</div><input class="finp" id="tc-rem-nota" placeholder="Pagar TC BBVA, Revisar estado de cuenta..."></div>
     </div>
     <div style="margin-top:12px">
       <div class="flbl" style="margin-bottom:6px">📎 Evidencia / comprobante (imagen o PDF · máx. 3 MB)</div>
@@ -667,6 +732,23 @@ tbody td{padding:10px 13px;vertical-align:middle}
       <div class="fgrp"><div class="flbl">Monto pendiente ($)</div><input type="number" class="finp" id="mov-pend" placeholder="0"></div>
       <div class="fgrp"><div class="flbl">Estatus</div><select class="finp" id="mov-est"><option value="PAGADO">Pagado</option><option value="PENDIENTE">Pendiente</option><option value="PARCIAL">Parcial</option><option value="EN PROCESO">En proceso</option><option value="CANCELADO">Cancelado</option></select></div>
       <div class="fgrp fgf"><div class="flbl">Observaciones</div><textarea class="finp" id="mov-obs" rows="2" style="resize:vertical"></textarea></div>
+    </div>
+    <!-- Recordatorio movimiento -->
+    <div style="margin:10px 0;padding:10px;background:var(--al);border-radius:8px;border:1px solid var(--bd)">
+      <div class="flbl" style="margin-bottom:8px;color:var(--amber)">🔔 Recordatorio (opcional)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div class="fgrp"><div class="flbl">Fecha</div><input type="date" class="finp" id="mov-rem-fecha"></div>
+        <div class="fgrp"><div class="flbl">Hora</div><input type="time" class="finp" id="mov-rem-hora" value="09:00"></div>
+        <div class="fgrp"><div class="flbl">Tipo</div>
+          <select class="finp" id="mov-rem-tipo">
+            <option value="">Sin recordatorio</option>
+            <option value="unico">Único</option>
+            <option value="quincenal">Quincenal</option>
+            <option value="mensual">Mensual</option>
+          </select>
+        </div>
+      </div>
+      <div class="fgrp" style="margin-top:6px"><div class="flbl">Nota</div><input class="finp" id="mov-rem-nota" placeholder="Qué recordar..."></div>
     </div>
     <div style="margin-top:12px">
       <div class="flbl" style="margin-bottom:6px">📎 Evidencia / comprobante (imagen o PDF · máx. 3 MB)</div>
@@ -973,6 +1055,17 @@ document.addEventListener('click',function(e){
       }
     }
   }
+  // TC modal pill toggle
+  var pillToggle=t.getAttribute('data-pill-toggle');
+  if(pillToggle){
+    var wasOk=t.classList.contains('ok');
+    var wasPend=t.classList.contains('pending');
+    t.classList.toggle('ok');
+    if(!wasOk && wasPend) t.classList.remove('pending');
+    if(wasOk && wasPend) { t.classList.remove('ok'); }
+    if(wasOk && !wasPend) { t.classList.remove('ok'); }
+    return;
+  }
   // Deseos actions
   var compId=t.getAttribute('data-comprado-id');
   if(compId){marcarComprado(compId);return;}
@@ -1004,6 +1097,8 @@ var TC_CARDS_DEF = [
 ];
 var TC_CARDS = ld('tc_cards', TC_CARDS_DEF);
 var DESEOS   = ld('deseos',[]);
+var REMINDERS = ld('reminders',[]);
+var remindersFilter = 'todos';
 
 // Initialize QNAS if empty
 if(!QNAS || Object.keys(QNAS).length===0){
@@ -1187,6 +1282,7 @@ function renderPage(id){
   else if(id==='catalogos')  renderCats();
   else if(id==='perfil')     renderPerfil();
   else if(id==='stats')      renderStats();
+  else if(id==='reminders')  renderReminders();
   else if(id==='acerca')     renderAcerca();
   else if(id==='tarjetas')   renderTarjetas();
   else if(id==='deseos')     renderDeseos();
@@ -1429,14 +1525,35 @@ function evOpenMovRecord(movId){
   }
 }
 function buildTCPills(r){
-  var p26='', p27='';
+  var isLocked=r.lockedUntil&&Date.now()<r.lockedUntil;
+  var lkCls=isLocked?' locked':'';
+  var p26='',p27='',p28='';
+  // Build planned set
+  var planned={};
+  if(r.mesInicio!==undefined&&r.anioInicio&&r.meses){
+    var cur2={mes:r.mesInicio,anio:r.anioInicio};
+    for(var pi=0;pi<r.meses;pi++){
+      if(!planned[cur2.anio]) planned[cur2.anio]={};
+      planned[cur2.anio][cur2.mes]=true;
+      cur2.mes++;
+      if(cur2.mes>11){cur2.mes=0;cur2.anio++;}
+    }
+  }
   for(var mi=0;mi<12;mi++){
     var ok26=r.pagos&&r.pagos[2026]&&r.pagos[2026][mi]==='PAGADO';
     var ok27=r.pagos&&r.pagos[2027]&&r.pagos[2027][mi]==='PAGADO';
-    p26+='<div class="mp'+(ok26?' ok':'')+'" onclick="toggleMes(\''+r.id+'\',2026,'+mi+')" title="'+MS[mi]+' 2026">'+MS[mi]+'</div>';
-    p27+='<div class="mp'+(ok27?' ok':'')+'" onclick="toggleMes(\''+r.id+'\',2027,'+mi+')" title="'+MS[mi]+' 2027">'+MS[mi]+'</div>';
+    var ok28=r.pagos&&r.pagos[2028]&&r.pagos[2028][mi]==='PAGADO';
+    var pl26=planned[2026]&&planned[2026][mi];
+    var pl27=planned[2027]&&planned[2027][mi];
+    var pl28=planned[2028]&&planned[2028][mi];
+    var c26=ok26?'ok':(pl26?'pending':'');
+    var c27=ok27?'ok':(pl27?'pending':'');
+    var c28=ok28?'ok':(pl28?'pending':'');
+    p26+='<div class="mp '+c26+lkCls+'" onclick="toggleMes(\''+r.id+'\',2026,'+mi+')" title="'+MS[mi]+' 2026">'+MS[mi]+'</div>';
+    p27+='<div class="mp '+c27+lkCls+'" onclick="toggleMes(\''+r.id+'\',2027,'+mi+')" title="'+MS[mi]+' 2027">'+MS[mi]+'</div>';
+    p28+='<div class="mp '+c28+lkCls+'" onclick="toggleMes(\''+r.id+'\',2028,'+mi+')" title="'+MS[mi]+' 2028">'+MS[mi]+'</div>';
   }
-  return {p26:p26, p27:p27};
+  return {p26:p26,p27:p27,p28:p28};
 }
 function getTCCardInfo(cardId){
   if(!cardId) return null;
@@ -1474,9 +1591,21 @@ function renderTC(){
   // Apply filters
   var cardFilter=document.getElementById('tc-card-filter')?document.getElementById('tc-card-filter').value:'';
   var sortBy=document.getElementById('tc-sort')?document.getElementById('tc-sort').value:'fecha';
+  var tcSearch=(document.getElementById('tc-search')?document.getElementById('tc-search').value.trim().toLowerCase():'');
   var list=TC.slice();
   if(tcFilter!=='TODOS') list=list.filter(function(r){return r.estatus===tcFilter;});
   if(cardFilter) list=list.filter(function(r){return r.cardId===cardFilter;});
+  if(tcSearch){
+    list=list.filter(function(r){
+      // Match any combination of typed chars in the description
+      var desc=r.desc.toLowerCase();
+      var ok=true;
+      for(var ci=0;ci<tcSearch.length;ci++){
+        if(desc.indexOf(tcSearch[ci])===-1){ok=false;break;}
+      }
+      return ok;
+    });
+  }
   // Sort
   list.sort(function(a,b){
     if(sortBy==='tarjeta') return (a.cardId||'').localeCompare(b.cardId||'');
@@ -1530,7 +1659,7 @@ function renderTC(){
 function buildTCTable(list, showCard){
   var h='<div class="tbl"><table><thead><tr><th>#</th><th style="min-width:200px">Descripción</th>';
   if(showCard) h+='<th>Tarjeta</th>';
-  h+='<th>Fecha</th><th>Día pago</th><th>Monto</th><th>MSI</th><th>Pago/Mes</th><th>Pagos</th><th>Saldo</th><th>2026</th><th>2027</th><th>Estatus</th><th>Ev.</th><th></th></tr></thead><tbody>';
+  h+='<th>Fecha</th><th>Día pago</th><th>Monto</th><th>MSI</th><th>Pago/Mes</th><th>Pagos</th><th>Saldo</th><th>2026</th><th>2027</th><th>2028</th><th>Estatus</th><th>Ev.</th><th></th></tr></thead><tbody>';
   for(var i=0;i<list.length;i++){
     var r=list[i];
     var pm=tcPM(r), cnt=tcCnt(r), sal2=tcSaldo(r);
@@ -1549,8 +1678,9 @@ function buildTCTable(list, showCard){
     h+='<td class="tdm">'+MXN(pm)+'</td>';
     h+='<td class="tdm" style="text-align:center">'+cnt+'/'+r.meses+'</td>';
     h+='<td class="tdm '+(sal2>0?'tdr':'tdg')+'">'+MXN(sal2)+'</td>';
-    h+='<td><div class="mpg" style="min-width:220px">'+pills.p26+'</div></td>';
-    h+='<td><div class="mpg" style="min-width:220px">'+pills.p27+'</div></td>';
+    h+='<td><div class="mpg" style="min-width:180px">'+pills.p26+'</div></td>';
+    h+='<td><div class="mpg" style="min-width:180px">'+pills.p27+'</div></td>';
+    h+='<td><div class="mpg" style="min-width:180px">'+pills.p28+'</div></td>';
     h+='<td>'+badge(r.estatus)+'</td>';
     h+=evCellTC(r);
     h+='<td><div style="display:flex;gap:5px"><button class="btn-ic" onclick="openTC(\''+r.id+'\')">✏️</button><button class="btn-ic" onclick="delTC(\''+r.id+'\')">🗑️</button></div></td>';
@@ -1568,6 +1698,64 @@ function filterTC(f, btn){
   renderTC();
 }
 
+function tcCalcPills(){
+  tcPreview();
+  var mesI=parseInt(document.getElementById('tc-mes-inicio').value)||0;
+  var anioI=parseInt(document.getElementById('tc-anio-inicio').value)||2026;
+  var msi=parseInt(document.getElementById('tc-meses').value)||1;
+  var monto=parseFloat(document.getElementById('tc-monto').value)||0;
+  document.getElementById('tc-months').style.display=monto>0?'block':'none';
+  if(!monto) return;
+  // Build pill plan: mark planned months red, preserve existing pagado
+  var plan={};// {yr:{mi:true}} = planned
+  var cur={mes:mesI,anio:anioI};
+  for(var i=0;i<msi;i++){
+    if(!plan[cur.anio]) plan[cur.anio]={};
+    plan[cur.anio][cur.mes]=true;
+    cur.mes++;
+    if(cur.mes>11){cur.mes=0;cur.anio++;}
+  }
+  // Get existing pagado state from current pills
+  var paid={};
+  [2026,2027,2028].forEach(function(yr){
+    var el=document.getElementById('tc-p'+yr);
+    if(!el) return;
+    paid[yr]={};
+    var pills=el.querySelectorAll('.mp');
+    pills.forEach(function(p){
+      if(p.classList.contains('ok')) paid[yr][parseInt(p.dataset.mi)]=true;
+    });
+  });
+  // Render pills
+  [2026,2027,2028].forEach(function(yr){
+    var el=document.getElementById('tc-p'+yr);
+    if(!el) return;
+    var h='';
+    for(var mi=0;mi<12;mi++){
+      var isPlanned=plan[yr]&&plan[yr][mi];
+      var isPaid=paid[yr]&&paid[yr][mi];
+      var cls=isPaid?'ok':(isPlanned?'pending':'');
+      var title=MF[mi]+' '+yr;
+      var isP=isPlanned?'1':'0';
+      h+='<div class="mp '+cls+'" data-yr="'+yr+'" data-mi="'+mi+'" data-planned="'+isP+'" data-pill-toggle="1" title="'+title+'">'+MS[mi]+'</div>';
+    }
+    el.innerHTML=h;
+  });
+  // Update pills info
+  var infoEl=document.getElementById('tc-pills-info');
+  if(infoEl) infoEl.textContent=msi+' pagos desde '+MF[mesI]+' '+anioI;
+  // Auto-fill reminder date
+  var remFecha=document.getElementById('tc-rem-fecha');
+  var diaPago=document.getElementById('tc-dia-pago').value;
+  if(remFecha&&diaPago&&!remFecha.value){
+    var d=new Date(anioI,mesI,parseInt(diaPago)||1);
+    remFecha.value=d.toISOString().split('T')[0];
+  }
+  // Show ref pago
+  var refEl=document.getElementById('tc-ref-pago');
+  var card=getTCCardInfo(document.getElementById('tc-card').value);
+  if(refEl) refEl.textContent=card?'Día '+card.pago+' de cada mes':'—';
+}
 function tcAutoFillPago(){
   var sel=document.getElementById('tc-card');
   if(!sel) return;
@@ -1600,6 +1788,15 @@ function openTC(id){
   document.getElementById('tc-meses').value=r?r.meses:12;
   document.getElementById('tc-est').value=r?r.estatus:'PENDIENTE';
   document.getElementById('tc-dia-pago').value=r&&r.diaPago?r.diaPago:'';
+  document.getElementById('tc-mes-inicio').value=r&&r.mesInicio!==undefined?r.mesInicio:new Date().getMonth();
+  document.getElementById('tc-anio-inicio').value=r&&r.anioInicio?r.anioInicio:new Date().getFullYear();
+  document.getElementById('tc-rem-tipo').value='';
+  document.getElementById('tc-rem-fecha').value='';
+  document.getElementById('tc-rem-hora').value='09:00';
+  document.getElementById('tc-rem-nota').value='';
+  // Restore ref pago
+  var refEl2=document.getElementById('tc-ref-pago');
+  if(refEl2) refEl2.textContent='—';
   populateTCCardSelect(r?r.cardId||'':'');
   // Build pills
   var yrs=[2026,2027];
@@ -1645,7 +1842,10 @@ function saveTC(){
       if(pills[pi].classList.contains('ok')) pagos[yr][pi]='PAGADO';
     }
   }
-  var item={id:editTCId||Date.now().toString(),desc:desc,monto:monto,meses:meses,fecha:document.getElementById('tc-fecha').value,estatus:document.getElementById('tc-est').value,pagos:pagos,cardId:document.getElementById('tc-card').value||'',diaPago:parseInt(document.getElementById('tc-dia-pago').value)||null,evidencia:evGet('tc-ev')||null};
+  var tcRemTipo=document.getElementById('tc-rem-tipo').value;
+  var tcReminder=tcRemTipo?{fecha:document.getElementById('tc-rem-fecha').value,hora:document.getElementById('tc-rem-hora').value,tipo:tcRemTipo,nota:document.getElementById('tc-rem-nota').value,origen:'tc',origenId:'',completado:false}:null;
+  var item={id:editTCId||Date.now().toString(),desc:desc,monto:monto,meses:meses,fecha:document.getElementById('tc-fecha').value,estatus:document.getElementById('tc-est').value,pagos:pagos,cardId:document.getElementById('tc-card').value||'',diaPago:parseInt(document.getElementById('tc-dia-pago').value)||null,mesInicio:parseInt(document.getElementById('tc-mes-inicio').value)||0,anioInicio:parseInt(document.getElementById('tc-anio-inicio').value)||2026,evidencia:evGet('tc-ev')||null,lockedUntil:null};
+  if(tcReminder){tcReminder.origenId=item.id;saveReminder(tcReminder);}
   if(editTCId){
     for(var i=0;i<TC.length;i++){if(TC[i].id===editTCId){TC[i]=item;break;}}
   } else {
@@ -1669,9 +1869,23 @@ function toggleMes(id, yr, mi){
   var r=null;
   for(var i=0;i<TC.length;i++){if(TC[i].id===id){r=TC[i];break;}}
   if(!r) return;
+  // Check lock: if locked within 24h, block
+  if(r.lockedUntil && Date.now()<r.lockedUntil){
+    var hrs=Math.ceil((r.lockedUntil-Date.now())/3600000);
+    toast('Este registro está bloqueado por '+hrs+'h tras el último pago marcado');
+    return;
+  }
   if(!r.pagos) r.pagos={};
   if(!r.pagos[yr]) r.pagos[yr]={};
-  r.pagos[yr][mi]=r.pagos[yr][mi]==='PAGADO'?undefined:'PAGADO';
+  var wasPaid=r.pagos[yr][mi]==='PAGADO';
+  r.pagos[yr][mi]=wasPaid?undefined:'PAGADO';
+  // If marking as PAID, set 24h lock from now
+  if(!wasPaid){
+    r.lockedUntil=Date.now()+(24*60*60*1000);
+    toast('Mes marcado como pagado ✓ — registro bloqueado 24h');
+  } else {
+    r.lockedUntil=null;
+  }
   sv('tc',TC);
   renderTC();
 }
@@ -1742,6 +1956,30 @@ function renderQnas(){
     for(var i=0;i<archived.length;i++) html+=buildQnaBlock(archived[i]);
     html+='</div>';
   }
+  // Apply search filter to blocks
+  var qSearch=(document.getElementById('qna-search')?document.getElementById('qna-search').value.trim().toLowerCase():'');
+  if(qSearch){
+    var filtered=html;
+    // Re-filter movimientos in each block
+    var allQ=Object.values(QNAS).filter(function(q){return q.key.indexOf(' '+activeYear)!==-1;});
+    allQ.sort(function(a,b){return a.n-b.n;});
+    var fHtml='';
+    for(var qi=0;qi<allQ.length;qi++){
+      var q2=allQ[qi];
+      var matches=(q2.movimientos||[]).filter(function(m){
+        var str=((m.concepto||'')+(m.desc||'')+(m.monto||'')).toLowerCase();
+        var ok2=true;
+        for(var ci=0;ci<qSearch.length;ci++){if(str.indexOf(qSearch[ci])===-1){ok2=false;break;}}
+        return ok2;
+      });
+      if(matches.length){
+        var qCopy=Object.assign({},q2);
+        qCopy.movimientos=matches;
+        fHtml+=buildQnaBlock(qCopy);
+      }
+    }
+    html=fHtml||'<div class="empty" style="padding:30px;text-align:center;color:var(--tx3)">Sin resultados para "'+qSearch+'"</div>';
+  }
   document.getElementById('qna-blocks').innerHTML=html;
 }
 
@@ -1785,13 +2023,20 @@ function openMov(qKey, movId){
     sel.appendChild(opt);
   }
   evSet('mov-ev', mov?mov.evidencia:null);
+  document.getElementById('mov-rem-tipo').value='';
+  document.getElementById('mov-rem-fecha').value='';
+  document.getElementById('mov-rem-hora').value='09:00';
+  document.getElementById('mov-rem-nota').value='';
   document.getElementById('m-mov').style.display='flex';
 }
 
 function saveMov(){
   var monto=parseFloat(document.getElementById('mov-monto').value)||0;
   if(!monto){toast('Ingresa el monto');return;}
+  var movRemTipo=document.getElementById('mov-rem-tipo').value;
+  var movReminder=movRemTipo?{fecha:document.getElementById('mov-rem-fecha').value,hora:document.getElementById('mov-rem-hora').value,tipo:movRemTipo,nota:document.getElementById('mov-rem-nota').value,origen:'mov',origenId:'',completado:false}:null;
   var mov={id:editMovId||Date.now().toString(),fecha:document.getElementById('mov-fecha').value,concepto:document.getElementById('mov-conc').value,desc:document.getElementById('mov-desc').value,monto:monto,modo:document.getElementById('mov-modo').value,compro:document.getElementById('mov-comp').value,pendiente:parseFloat(document.getElementById('mov-pend').value)||0,estatus:document.getElementById('mov-est').value,obs:document.getElementById('mov-obs').value,evidencia:evGet('mov-ev')||null};
+  if(movReminder){movReminder.origenId=mov.id;saveReminder(movReminder);}
   var q=QNAS[editMovKey];
   if(editMovId){
     for(var i=0;i<q.movimientos.length;i++){if(q.movimientos[i].id===editMovId){q.movimientos[i]=mov;break;}}
@@ -2121,6 +2366,7 @@ function exportarJSON(){
     tc:TC,
     qnas:QNAS,
     deseos:DESEOS,
+    reminders:REMINDERS,
     metas:METAS,
     proyectos:PROYECTOS,
     cats:CATS,
@@ -2151,6 +2397,7 @@ function importarJSON(input){
       if(data.metas)    {METAS=data.metas;       sv('metas',METAS);}
       if(data.proyectos){PROYECTOS=data.proyectos;sv('proyectos',PROYECTOS);}
       if(data.deseos){DESEOS=data.deseos;sv('deseos',DESEOS);}
+      if(data.reminders){REMINDERS=data.reminders;sv('reminders',REMINDERS);}
       if(data.cats)     {CATS=data.cats;          sv('cats',CATS);}
       applyTheme(PERFIL.tema||'auto');
       updateAvatar();
@@ -2481,12 +2728,13 @@ function delDeseo(id){
 
 var TIPS={
   'dashboard':{ttl:'📊 Dashboard',body:'Tu centro de control financiero. Aquí ves de un vistazo todo lo que importa.',items:['📈 KPIs — deuda TC, pagos, sobrante del año','📅 Quincena activa con ingresos y gastos','🎯 Metas y proyectos activos resumidos','💳 Pagos TC del mes actual y siguiente','🛒 Lista de deseos pendientes']},
-  'tc':{ttl:'💳 Tarjeta de crédito',body:'Registra y controla todas tus compras a meses sin intereses (MSI).',items:['➕ Agrega compras con tarjeta, monto y MSI','📅 Ve el resumen de pago del mes actual y siguiente','🗂️ Filtra y agrupa por tarjeta o estatus','📎 Adjunta ticket o comprobante a cada registro','✅ Marca los meses pagados con un clic']},
+  'tc':{ttl:'💳 Compras con Tarjeta(s)',body:'Registra y controla todas tus compras a meses sin intereses (MSI).',items:['➕ Agrega compras con tarjeta, monto y MSI','📅 Ve el resumen de pago del mes actual y siguiente','🗂️ Filtra y agrupa por tarjeta o estatus','📎 Adjunta ticket o comprobante a cada registro','✅ Marca los meses pagados con un clic']},
   'quincenas':{ttl:'💰 Quincenas',body:'Registra todos tus movimientos de gasto por quincena del año.',items:['📋 24 quincenas por año — 1a y 2a de cada mes','➕ Agrega movimientos con concepto, monto y modo de pago','🗄️ Archiva quincenas antiguas sin afectar los KPIs','📊 Ve ingreso, gastos y sobrante por quincena','📎 Adjunta evidencia o comprobante a cada movimiento']},
   'metas':{ttl:'🎯 Metas de ahorro',body:'Crea fondos de ahorro con progreso visual y proyecciones.',items:['💰 Define nombre, monto objetivo y fecha límite','📈 Visualiza el % completado con barra de progreso','➕ Registra depósitos manuales o fija una aportación quincenal','🔮 El sistema proyecta si llegarás a tiempo','⏰ Las metas críticas aparecen en alertas del dashboard']},
   'proyectos':{ttl:'🌅 Proyectos futuros',body:'Planea compras o metas grandes a 1–15 años: casa, auto, viajes.',items:['🏠 Categorías: casa, auto, vacaciones, educación, boda','💡 Calcula automáticamente cuánto aportar por quincena','📊 Progreso visual con % completado','💾 Registra depósitos parciales en cualquier momento','📅 Ve cuántos meses faltan para tu fecha objetivo']},
   'deseos':{ttl:'🛒 Lista de deseos',body:'Lleva el registro de artículos que quieres comprar en el futuro.',items:['⭐ Marca como Importante, 💭 Deseado o 📅 Programado','💰 Agrega precio estimado para visualizar el presupuesto total','🏪 Anota la tienda o lugar donde lo quieres conseguir','✓ Marca como comprado cuando lo adquieras','📊 El dashboard muestra un resumen de tus deseos pendientes']},
   'catalogos':{ttl:'📋 Catálogos',body:'Administra los conceptos de pago que usas al registrar movimientos.',items:['➕ Agrega conceptos personalizados para tu situación','🗑️ Elimina los que no uses','📋 Los conceptos aparecen en el selector al registrar movimientos','💡 Usa nombres claros: RENTA, ALIMENTACION, SALUD, etc.']},
+  'reminders':{ttl:'🔔 Recordatorios',body:'Gestiona alertas programadas desde tus compras TC y movimientos de quincenas.',items:['📅 Los recordatorios se crean al agregar una compra TC o movimiento','🔴 Alertas urgentes aparecen 2 horas antes del vencimiento','✅ Marca como completado cuando ya atendiste el recordatorio','🔁 Soporta recordatorios únicos, mensuales y quincenales','💡 Próximamente: notificación por WhatsApp y email con backend']},
   'stats':{ttl:'📈 Estadísticas',body:'Visualización completa de tus finanzas basada en los datos reales que has registrado.',items:['📊 Gastos vs Ingresos por mes del año activo','🍩 Distribución de gastos por concepto','📉 Sobrante acumulado quincena a quincena','💳 Saldo pendiente por tarjeta de crédito','🎯 Progreso de metas y proyectos futuros']},
   'tarjetas':{ttl:'💳 Mis tarjetas',body:'Catálogo de tus tarjetas de crédito y departamentales.',items:['➕ Registra cada tarjeta con banco, tipo, día de corte y pago','🎨 Asigna un color identificador a cada tarjeta','📅 El día de pago se autocompleta al registrar una compra TC','📊 Ve cuántas compras activas tiene cada tarjeta','💡 Incluye tarjetas departamentales: Liverpool, Sears, Coppel']},
   'perfil':{ttl:'⚙️ Perfil y ajustes',body:'Configura tus datos personales y preferencias de la app.',items:['👤 Edita tu nombre e ingreso quincenal base','📷 Agrega una foto de perfil','🌙 Cambia entre modo claro, oscuro o automático','💾 Exporta todos tus datos como respaldo JSON','📥 Importa un respaldo en otro navegador o dispositivo']},
@@ -2532,6 +2780,7 @@ function renderPage(id){
   else if(id==='tarjetas')   renderTarjetas();
   else if(id==='perfil')     renderPerfil();
   else if(id==='stats')      renderStats();
+  else if(id==='reminders')  renderReminders();
   else if(id==='acerca')     renderAcerca();
   // Show tip after render
   setTimeout(function(){showTip(id);},400);
@@ -2582,6 +2831,144 @@ function switchEmojiCat(btn, grpId){
   for(var i=0;i<btns.length;i++) btns[i].classList.remove('active');
   btn.classList.add('active');
 }
+
+
+// ════════════════════════════════════════
+// REMINDERS
+// ════════════════════════════════════════
+function saveReminder(rem){
+  if(!rem||!rem.fecha||!rem.tipo) return;
+  rem.id=rem.id||Date.now().toString();
+  // Check if reminder for same origin already exists
+  var existing=REMINDERS.findIndex(function(r){return r.origenId===rem.origenId&&r.origen===rem.origen;});
+  if(existing>=0) REMINDERS[existing]=rem;
+  else REMINDERS.push(rem);
+  sv('reminders',REMINDERS);
+}
+function getReminderStatus(rem){
+  if(rem.completado) return 'completado';
+  if(!rem.fecha) return 'pendiente';
+  var now=new Date();
+  var remDT=new Date(rem.fecha+'T'+(rem.hora||'09:00'));
+  var diffMs=remDT-now;
+  if(diffMs<0) return 'vencido';
+  if(diffMs<2*60*60*1000) return 'hoy'; // within 2 hours = urgent
+  var today=new Date(); today.setHours(0,0,0,0);
+  var remDay=new Date(remDT); remDay.setHours(0,0,0,0);
+  if(remDay.getTime()===today.getTime()) return 'hoy';
+  return 'pendiente';
+}
+function filterReminders(f,btn){
+  remindersFilter=f;
+  var tabs=document.querySelectorAll('#reminders-tabs .tab');
+  for(var i=0;i<tabs.length;i++) tabs[i].classList.remove('active');
+  if(btn) btn.classList.add('active');
+  renderReminders();
+}
+function renderReminders(){
+  // KPIs
+  var total=REMINDERS.length;
+  var pendientes=REMINDERS.filter(function(r){return getReminderStatus(r)==='pendiente';}).length;
+  var hoy=REMINDERS.filter(function(r){return getReminderStatus(r)==='hoy';}).length;
+  var vencidos=REMINDERS.filter(function(r){return getReminderStatus(r)==='vencido';}).length;
+  var kh='';
+  var ks=[
+    {lb:'Total',vl:total+'',sb:'recordatorios',ac:'#2563EB'},
+    {lb:'Hoy / Urgentes',vl:hoy+'',sb:'requieren atención',ac:'#DC2626'},
+    {lb:'Pendientes',vl:pendientes+'',sb:'próximos',ac:'#D97706'},
+    {lb:'Vencidos',vl:vencidos+'',sb:'sin completar',ac:'#94A3B8'}
+  ];
+  for(var i=0;i<ks.length;i++) kh+='<div class="kpi" style="--ac:'+ks[i].ac+'"><div class="kpi-lb">'+ks[i].lb+'</div><div class="kpi-vl" style="color:'+ks[i].ac+'">'+ks[i].vl+'</div><div class="kpi-sb">'+ks[i].sb+'</div></div>';
+  document.getElementById('reminders-kpis').innerHTML=kh;
+
+  var list=REMINDERS.slice();
+  // Filter
+  if(remindersFilter!=='todos'){
+    list=list.filter(function(r){return getReminderStatus(r)===remindersFilter;});
+  }
+  // Sort by fecha
+  list.sort(function(a,b){
+    if(!a.fecha) return 1;
+    if(!b.fecha) return -1;
+    return new Date(a.fecha+'T'+(a.hora||'09:00'))-new Date(b.fecha+'T'+(b.hora||'09:00'));
+  });
+
+  if(!list.length){
+    document.getElementById('reminders-list').innerHTML='<div class="empty" style="padding:40px;text-align:center"><div class="empty-ic">🔔</div><div class="empty-t">Sin recordatorios</div><div class="empty-s">Agrega recordatorios desde TC o Quincenas al registrar una compra o movimiento</div></div>';
+    return;
+  }
+
+  var statusColor={pendiente:'#D97706',hoy:'#DC2626',vencido:'#94A3B8',completado:'#16A34A'};
+  var statusBg={pendiente:'var(--al)',hoy:'var(--rl)',vencido:'var(--sf2)',completado:'var(--gl)'};
+  var statusLabel={pendiente:'⏳ Pendiente',hoy:'🔴 Hoy / Urgente',vencido:'⚠️ Vencido',completado:'✅ Completado'};
+  var origenLabel={tc:'💳 TC','mov':'💰 Quincena'};
+  var tipoLabel={unico:'Único',mensual:'Mensual',quincenal:'Quincenal'};
+
+  var html='<div style="display:flex;flex-direction:column;gap:10px">';
+  for(var i=0;i<list.length;i++){
+    var r=list[i];
+    var st=getReminderStatus(r);
+    var sc=statusColor[st]||'#64748B';
+    var sb=statusBg[st]||'var(--sf2)';
+    html+='<div style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;border-left:4px solid '+sc+'">';
+    html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">';
+    html+='<div><div style="font-size:13px;font-weight:700;color:var(--tx)">'+(r.nota||'Sin descripción')+'</div>';
+    html+='<div style="font-size:11px;color:var(--tx3);margin-top:2px">'+(origenLabel[r.origen]||r.origen)+' · '+(tipoLabel[r.tipo]||r.tipo)+'</div></div>';
+    html+='<span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:'+sb+';color:'+sc+'">'+(statusLabel[st]||st)+'</span>';
+    html+='</div>';
+    html+='<div style="display:flex;align-items:center;gap:16px;margin-bottom:10px">';
+    html+='<div style="display:flex;align-items:center;gap:5px"><span style="font-size:12px">📅</span><span style="font-size:12px;font-weight:600;color:var(--tx2)">'+(r.fecha||'—')+'</span></div>';
+    html+='<div style="display:flex;align-items:center;gap:5px"><span style="font-size:12px">🕐</span><span style="font-size:12px;font-weight:600;color:var(--tx2)">'+(r.hora||'09:00')+'</span></div>';
+    html+='</div>';
+    html+='<div style="display:flex;gap:8px">';
+    if(!r.completado){
+      html+='<button class="btn btn-t btn-sm" data-rem-complete="'+r.id+'">✓ Completado</button>';
+    }
+    html+='<button class="btn btn-d btn-sm" data-rem-del="'+r.id+'">🗑️</button>';
+    html+='</div></div>';
+  }
+  html+='</div>';
+  document.getElementById('reminders-list').innerHTML=html;
+}
+function checkReminders(){
+  // Check for reminders due in the next 2 hours and show in-app alert
+  var now=new Date();
+  var urgent=REMINDERS.filter(function(r){
+    if(r.completado) return false;
+    if(!r.fecha) return false;
+    var remDT=new Date(r.fecha+'T'+(r.hora||'09:00'));
+    var diff=remDT-now;
+    return diff>=0&&diff<=2*60*60*1000;
+  });
+  if(urgent.length){
+    var msg=urgent.length===1?
+      '🔔 Recordatorio: '+urgent[0].nota+' a las '+urgent[0].hora:
+      '🔔 Tienes '+urgent.length+' recordatorios próximos';
+    toast(msg, 6000);
+  }
+}
+// Delegation for reminder actions
+document.addEventListener('click',function(e){
+  var t=e.target;
+  var complId=t.getAttribute('data-rem-complete');
+  if(complId){
+    for(var i=0;i<REMINDERS.length;i++){if(REMINDERS[i].id===complId){REMINDERS[i].completado=true;break;}}
+    sv('reminders',REMINDERS);
+    renderReminders();
+    toast('Recordatorio completado ✓');
+    return;
+  }
+  var delRId=t.getAttribute('data-rem-del');
+  if(delRId){
+    REMINDERS=REMINDERS.filter(function(r){return r.id!==delRId;});
+    sv('reminders',REMINDERS);
+    renderReminders();
+    toast('Eliminado');
+    return;
+  }
+});
+// Check reminders every 30 minutes
+setInterval(checkReminders, 30*60*1000);
 
 function renderStats(){
   document.getElementById('stats-yr-lbl').textContent=activeYear;
@@ -2807,7 +3194,7 @@ function renderAcerca(){
   html+='<div class="g2">';
   // Producto
   html+='<div class="card"><div class="card-hd"><div class="card-ttl">📱 Sobre este producto</div></div><div class="card-bd">';
-  var prodRows=[['Producto','Quorbitt Finanzas'],['Version','1.4.0'],['Año','2026'],['Plataforma','Web · App']];
+  var prodRows=[['Producto','Quorbitt Finanzas'],['Version','1.5.0'],['Año','2026'],['Plataforma','Web · App']];
   html+='<div style="display:flex;flex-direction:column;gap:0">';
   for(var i=0;i<prodRows.length;i++){
     var bg=i%2===0?'background:var(--sf)':'background:var(--sf2)';
