@@ -434,7 +434,7 @@ tbody td{padding:10px 13px;vertical-align:middle}
 
     <!-- TC -->
     <div class="page" id="page-tc">
-      <div class="ph"><div><div class="pt">💳 Compras con Tarjeta(s) de crédito</div><div class="ps">Control de compras a meses sin intereses</div></div><button class="btn btn-p" onclick="openTC()">+ Nueva compra</button></div>
+      <div class="ph"><div><div class="pt">💳 Compras con Tarjeta(s) de crédito</div><div class="ps">Control de compras a meses sin intereses</div></div></div>
       <div class="g3" id="tc-kpis"></div>
       <!-- Pago mes actual + siguiente -->
       <div class="card" style="margin-bottom:16px">
@@ -444,9 +444,10 @@ tbody td{padding:10px 13px;vertical-align:middle}
         </div>
         <div class="card-bd" id="tc-pago-mes-grid"></div>
       </div>
-      <!-- Buscador TC -->
-      <div style="margin-bottom:10px">
-        <input class="finp" id="tc-search" placeholder="🔍 Buscar artículo... (cualquier combinación de letras)" oninput="renderTC()" style="font-size:12px;width:100%">
+      <!-- Buscador TC + Nueva compra -->
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+        <input class="finp" id="tc-search" placeholder="🔍 Buscar artículo... (cualquier combinación de letras)" oninput="renderTC()" style="font-size:12px;flex:1">
+        <button class="btn btn-p" onclick="openTC()" style="white-space:nowrap;flex-shrink:0">+ Nueva compra</button>
       </div>
       <!-- Filtros y agrupador -->
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
@@ -699,7 +700,7 @@ tbody td{padding:10px 13px;vertical-align:middle}
       </div>
       <div class="fgrp"><div class="flbl">Año inicio</div>
         <select class="finp" id="tc-anio-inicio" onchange="tcCalcPills()">
-          <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
+          <option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
         </select>
       </div>
       <div class="fgrp"><div class="flbl" id="tc-ref-pago-lbl" style="color:var(--amber)">Ref. pago tarjeta</div>
@@ -721,6 +722,7 @@ tbody td{padding:10px 13px;vertical-align:middle}
         <div class="flbl" style="margin:0">Meses del plan — 🔴 pendiente · 🟢 pagado</div>
         <span style="font-size:10px;color:var(--tx3)" id="tc-pills-info"></span>
       </div>
+      <div style="margin-bottom:6px"><div style="font-size:9px;font-weight:700;color:var(--tx2);margin-bottom:4px">2025</div><div class="mpg" id="tc-p25"></div></div>
       <div style="margin-bottom:6px"><div style="font-size:9px;font-weight:700;color:var(--tx2);margin-bottom:4px">2026</div><div class="mpg" id="tc-p26"></div></div>
       <div style="margin-bottom:6px"><div style="font-size:9px;font-weight:700;color:var(--tx2);margin-bottom:4px">2027</div><div class="mpg" id="tc-p27"></div></div>
       <div><div style="font-size:9px;font-weight:700;color:var(--tx2);margin-bottom:4px">2028</div><div class="mpg" id="tc-p28"></div></div>
@@ -1568,7 +1570,7 @@ function evOpenMovRecord(movId){
 function buildTCPills(r){
   var isLocked=r.lockedUntil&&Date.now()<r.lockedUntil;
   var lkCls=isLocked?' locked':'';
-  var p26='',p27='',p28='';
+  var p25='',p26='',p27='',p28='';
   // Build planned set
   var planned={};
   if(r.mesInicio!==undefined&&r.anioInicio&&r.meses){
@@ -1581,20 +1583,24 @@ function buildTCPills(r){
     }
   }
   for(var mi=0;mi<12;mi++){
+    var ok25=r.pagos&&r.pagos[2025]&&r.pagos[2025][mi]==='PAGADO';
     var ok26=r.pagos&&r.pagos[2026]&&r.pagos[2026][mi]==='PAGADO';
     var ok27=r.pagos&&r.pagos[2027]&&r.pagos[2027][mi]==='PAGADO';
     var ok28=r.pagos&&r.pagos[2028]&&r.pagos[2028][mi]==='PAGADO';
+    var pl25=planned[2025]&&planned[2025][mi];
     var pl26=planned[2026]&&planned[2026][mi];
     var pl27=planned[2027]&&planned[2027][mi];
     var pl28=planned[2028]&&planned[2028][mi];
+    var c25=ok25?'ok':(pl25?'pending':'');
     var c26=ok26?'ok':(pl26?'pending':'');
     var c27=ok27?'ok':(pl27?'pending':'');
     var c28=ok28?'ok':(pl28?'pending':'');
+    p25+='<div class="mp '+c25+lkCls+'" onclick="toggleMes(\''+r.id+'\',2025,'+mi+')" title="'+MS[mi]+' 2025">'+MS[mi]+'</div>';
     p26+='<div class="mp '+c26+lkCls+'" onclick="toggleMes(\''+r.id+'\',2026,'+mi+')" title="'+MS[mi]+' 2026">'+MS[mi]+'</div>';
     p27+='<div class="mp '+c27+lkCls+'" onclick="toggleMes(\''+r.id+'\',2027,'+mi+')" title="'+MS[mi]+' 2027">'+MS[mi]+'</div>';
     p28+='<div class="mp '+c28+lkCls+'" onclick="toggleMes(\''+r.id+'\',2028,'+mi+')" title="'+MS[mi]+' 2028">'+MS[mi]+'</div>';
   }
-  return {p26:p26,p27:p27,p28:p28};
+  return {p25:p25,p26:p26,p27:p27,p28:p28};
 }
 function getTCCardInfo(cardId){
   if(!cardId) return null;
@@ -1700,7 +1706,7 @@ function renderTC(){
 function buildTCTable(list, showCard){
   var h='<div class="tbl"><table><thead><tr><th>#</th><th style="min-width:200px">Descripción</th>';
   if(showCard) h+='<th>Tarjeta</th>';
-  h+='<th>Fecha</th><th>Día pago</th><th>Monto</th><th>MSI</th><th>Pago/Mes</th><th>Pagos</th><th>Saldo</th><th>2026</th><th>2027</th><th>2028</th><th>Estatus</th><th>Ev.</th><th></th></tr></thead><tbody>';
+  h+='<th>Fecha</th><th>Día pago</th><th>Monto</th><th>MSI</th><th>Pago/Mes</th><th>Pagos</th><th>Saldo</th><th>2025</th><th>2026</th><th>2027</th><th>2028</th><th>Estatus</th><th>Ev.</th><th></th></tr></thead><tbody>';
   for(var i=0;i<list.length;i++){
     var r=list[i];
     var pm=tcPM(r), cnt=tcCnt(r), sal2=tcSaldo(r);
@@ -1719,6 +1725,7 @@ function buildTCTable(list, showCard){
     h+='<td class="tdm">'+MXN(pm)+'</td>';
     h+='<td class="tdm" style="text-align:center">'+cnt+'/'+r.meses+'</td>';
     h+='<td class="tdm '+(sal2>0?'tdr':'tdg')+'">'+MXN(sal2)+'</td>';
+    h+='<td><div class="mpg" style="min-width:180px">'+pills.p25+'</div></td>';
     h+='<td><div class="mpg" style="min-width:180px">'+pills.p26+'</div></td>';
     h+='<td><div class="mpg" style="min-width:180px">'+pills.p27+'</div></td>';
     h+='<td><div class="mpg" style="min-width:180px">'+pills.p28+'</div></td>';
@@ -1758,7 +1765,7 @@ function tcCalcPills(){
   }
   // Get existing pagado state from current pills
   var paid={};
-  [2026,2027,2028].forEach(function(yr){
+  [2025,2026,2027,2028].forEach(function(yr){
     var el=document.getElementById('tc-p'+yr);
     if(!el) return;
     paid[yr]={};
@@ -1768,7 +1775,7 @@ function tcCalcPills(){
     });
   });
   // Render pills
-  [2026,2027,2028].forEach(function(yr){
+  [2025,2026,2027,2028].forEach(function(yr){
     var el=document.getElementById('tc-p'+yr);
     if(!el) return;
     var h='';
@@ -1840,10 +1847,10 @@ function openTC(id){
   if(refEl2) refEl2.textContent='—';
   populateTCCardSelect(r?r.cardId||'':'');
   // Build pills
-  var yrs=[2026,2027];
+  var yrs=[2025,2026,2027];
   for(var yi=0;yi<yrs.length;yi++){
     var yr=yrs[yi];
-    var id2=yr===2026?'tc-p26':'tc-p27';
+    var id2=yr===2025?'tc-p25':(yr===2026?'tc-p26':'tc-p27');
     var el=document.getElementById(id2);
     var h='';
     for(var mi=0;mi<12;mi++){
@@ -1871,10 +1878,10 @@ function saveTC(){
   var meses=parseInt(document.getElementById('tc-meses').value)||1;
   if(!desc||!monto){toast('Completa descripción y monto');return;}
   var pagos={};
-  var yrs=[2026,2027];
+  var yrs=[2025,2026,2027];
   for(var yi=0;yi<yrs.length;yi++){
     var yr=yrs[yi];
-    var id2=yr===2026?'tc-p26':'tc-p27';
+    var id2=yr===2025?'tc-p25':(yr===2026?'tc-p26':'tc-p27');
     var el=document.getElementById(id2);
     if(!el) continue;
     pagos[yr]={};
